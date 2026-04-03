@@ -218,13 +218,16 @@ function renderActivePlayer() {
 
   playerScorecard.innerHTML = tournament.course
     .map((hole, index) => {
-      const strokesReceived = computed.allocation[index].strokes;
       const score = player.scores[index];
+      const statusClass = score === null ? "score-missing" : "score-entered";
+      const netHoleScore =
+        score === null ? null : Math.max(1, Number(score) - computed.allocation[index].strokes);
       return `
-        <article class="score-hole-card ${strokesReceived > 0 ? "stroke-hole" : "non-stroke-hole"} ${score !== null ? "posted" : ""}">
+        <article class="score-hole-card ${statusClass}">
           <div class="hole-card-title">Hole ${hole.hole}</div>
           <div class="hole-card-line">Par ${hole.par} · ${hole.yardage} yds · SI ${hole.strokeIndex}</div>
-          <div class="hole-card-value">${score === null ? "Not posted" : `${score} strokes`}</div>
+          <div class="hole-card-value">${score === null ? "Not posted" : `${score} gross`}</div>
+          <div class="hole-card-line">${score === null ? "Waiting for score" : `Net ${netHoleScore}`}</div>
         </article>
       `;
     })

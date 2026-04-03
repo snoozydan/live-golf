@@ -537,6 +537,20 @@ button {
   border-color: rgba(13, 107, 69, 0.18);
 }
 
+.score-hole-card.score-entered,
+.leaderboard-hole-card.score-entered {
+  background: #dcefe4;
+  border-color: rgba(11, 79, 52, 0.16);
+  color: var(--stroke-text);
+}
+
+.score-hole-card.score-missing,
+.leaderboard-hole-card.score-missing {
+  background: #e4e9eb;
+  border-color: rgba(47, 65, 71, 0.14);
+  color: var(--no-stroke-text);
+}
+
 .hole-card-title {
   font-weight: 800;
 }
@@ -610,6 +624,20 @@ button {
   align-items: center;
 }
 
+.leaderboard-entry {
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(24, 36, 27, 0.06);
+}
+
+.player-toggle {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
 .rank-pill {
   display: inline-flex;
   justify-content: center;
@@ -643,6 +671,38 @@ button {
   display: block;
   font-weight: 800;
   font-size: 1.03rem;
+}
+
+.leaderboard-detail {
+  border-top: 1px solid rgba(24, 36, 27, 0.08);
+  padding: 16px 18px 18px;
+}
+
+.leaderboard-detail-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.detail-pill {
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(13, 107, 69, 0.08);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.leaderboard-hole-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.leaderboard-hole-card {
+  border-radius: 18px;
+  padding: 12px;
+  border: 1px solid rgba(24, 36, 27, 0.08);
 }
 
 .score-under {
@@ -779,6 +839,10 @@ button {
     grid-template-columns: 64px minmax(0, 1fr) repeat(3, minmax(72px, 0.8fr));
   }
 
+  .leaderboard-hole-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .leaderboard-row .leaderboard-metric:nth-last-child(-n + 2) {
     display: none;
   }
@@ -884,6 +948,10 @@ button {
 
   .leaderboard-row {
     grid-template-columns: 58px minmax(0, 1fr) 72px;
+  }
+
+  .leaderboard-hole-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .leaderboard-row .leaderboard-metric:nth-last-child(-n + 4) {

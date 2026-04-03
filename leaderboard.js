@@ -6,6 +6,7 @@ const leaderboardTotalPosted = document.getElementById("leaderboard-total-posted
 const leaderboardTopScore = document.getElementById("leaderboard-top-score");
 const leaderboardList = document.getElementById("leaderboard-list");
 const leaderboardPlayerCards = document.getElementById("leaderboard-player-cards");
+const expandedPlayers = new Set();
 
 function scoreLabel(value) {
   if (value === 0) {
@@ -51,36 +52,83 @@ function renderLeaderboardPage() {
   leaderboardList.innerHTML = ranked
     .map(
       (player) => `
-        <article class="leaderboard-row">
-          <div><span class="rank-pill">${player.rank}</span></div>
-          <div>
-            <div class="player-name">${player.name}</div>
-            <div class="player-meta">${player.division} · HCP ${player.handicap} · Thru ${player.thru}</div>
+        <article class="leaderboard-entry">
+          <div class="leaderboard-row">
+            <div><span class="rank-pill">${player.rank}</span></div>
+            <div>
+              <button class="player-toggle" type="button" data-player-toggle="${player.id}">
+                <span class="player-name">${player.name}</span>
+              </button>
+              <div class="player-meta">${player.division} · HCP ${player.handicap} · Thru ${player.thru}</div>
+            </div>
+            <div class="leaderboard-metric">
+              <span class="metric-label">Net</span>
+              <span class="metric-value ${scoreTone(player.netToPar)}">${scoreLabel(player.netToPar)}</span>
+            </div>
+            <div class="leaderboard-metric">
+              <span class="metric-label">Gross</span>
+              <span class="metric-value ${scoreTone(player.grossToPar)}">${scoreLabel(player.grossToPar)}</span>
+            </div>
+            <div class="leaderboard-metric">
+              <span class="metric-label">Strokes</span>
+              <span class="metric-value">${player.gross || "-"}</span>
+            </div>
+            <div class="leaderboard-metric">
+              <span class="metric-label">Net Total</span>
+              <span class="metric-value">${player.net || "-"}</span>
+            </div>
+            <div class="leaderboard-metric">
+              <span class="metric-label">Tee Time</span>
+              <span class="metric-value">${player.teeTime}</span>
+            </div>
           </div>
-          <div class="leaderboard-metric">
-            <span class="metric-label">Net</span>
-            <span class="metric-value ${scoreTone(player.netToPar)}">${scoreLabel(player.netToPar)}</span>
-          </div>
-          <div class="leaderboard-metric">
-            <span class="metric-label">Gross</span>
-            <span class="metric-value ${scoreTone(player.grossToPar)}">${scoreLabel(player.grossToPar)}</span>
-          </div>
-          <div class="leaderboard-metric">
-            <span class="metric-label">Strokes</span>
-            <span class="metric-value">${player.gross || "-"}</span>
-          </div>
-          <div class="leaderboard-metric">
-            <span class="metric-label">Net Total</span>
-            <span class="metric-value">${player.net || "-"}</span>
-          </div>
-          <div class="leaderboard-metric">
-            <span class="metric-label">Tee Time</span>
-            <span class="metric-value">${player.teeTime}</span>
-          </div>
+          ${
+            expandedPlayers.has(player.id)
+              ? `
+            <div class="leaderboard-detail">
+              <div class="leaderboard-detail-summary">
+                <div class="detail-pill">Gross ${scoreLabel(player.grossToPar)}</div>
+                <div class="detail-pill">Net ${scoreLabel(player.netToPar)}</div>
+                <div class="detail-pill">Total Gross ${player.gross || "-"}</div>
+                <div class="detail-pill">Total Net ${player.net || "-"}</div>
+              </div>
+              <div class="leaderboard-hole-grid">
+                ${player.scores
+                  .map((score, index) => {
+                    const hole = tournament.course[index];
+                    const strokes = player.allocation[index].strokes;
+                    const netScore = score === null ? null : Math.max(1, Number(score) - strokes);
+                    return `
+                      <div class="leaderboard-hole-card ${score === null ? "score-missing" : "score-entered"}">
+                        <div class="hole-card-title">Hole ${hole.hole}</div>
+                        <div class="hole-card-line">Par ${hole.par} · SI ${hole.strokeIndex}</div>
+                        <div class="hole-card-value">${score === null ? "-" : `${score} gross`}</div>
+                        <div class="hole-card-line">${score === null ? "No score yet" : `Net ${netScore}`}</div>
+                      </div>
+                    `;
+                  })
+                  .join("")}
+              </div>
+            </div>
+          `
+              : ""
+          }
         </article>
       `,
     )
     .join("");
+
+  leaderboardList.querySelectorAll("[data-player-toggle]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const playerId = button.getAttribute("data-player-toggle");
+      if (expandedPlayers.has(playerId)) {
+        expandedPlayers.delete(playerId);
+      } else {
+        expandedPlayers.add(playerId);
+      }
+      renderLeaderboardPage();
+    });
+  });
 
   leaderboardPlayerCards.innerHTML = ranked
     .map(

@@ -797,6 +797,76 @@ button {
   margin-bottom: 12px;
 }
 
+.group-scoretable-wrap {
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.group-scoretable {
+  display: grid;
+  gap: 12px;
+  min-width: 860px;
+}
+
+.group-scoretable-section,
+.group-scoretable-player {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.group-scoretable-player {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(24, 36, 27, 0.06);
+}
+
+.group-scoretable-label,
+.group-scoretable-playerhead {
+  font-weight: 800;
+}
+
+.group-scoretable-playerhead {
+  display: grid;
+  gap: 6px;
+}
+
+.group-scoretable-grid {
+  display: grid;
+  grid-template-columns: repeat(18, minmax(38px, 1fr));
+  gap: 8px;
+}
+
+.group-scorecell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 38px;
+  border-radius: 12px;
+  background: rgba(97, 114, 103, 0.1);
+  color: var(--no-stroke-text);
+  font-weight: 700;
+}
+
+.group-scorecell-hole,
+.group-scoretable-grid-par .group-scorecell {
+  background: transparent;
+  color: var(--muted);
+  min-height: 28px;
+}
+
+.group-scorecell.entered {
+  background: #dcefe4;
+  color: var(--stroke-text);
+}
+
+.group-scorecell.missing {
+  background: #e4e9eb;
+  color: var(--no-stroke-text);
+}
+
 .player-card {
   padding: 18px;
 }

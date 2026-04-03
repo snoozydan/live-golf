@@ -169,26 +169,56 @@ function renderGroupCards(group, tournament) {
     )
     .join("");
 
-  playerScorecard.innerHTML = players
-    .map(
-      (player) => `
-        <article class="group-player-card">
-          <div class="group-player-card-header">
+  const holeHeaders = tournament.course
+    .map((hole) => `<div class="group-scorecell group-scorecell-hole">${hole.hole}</div>`)
+    .join("");
+
+  const parRow = tournament.course
+    .map((hole) => `<div class="group-scorecell">${hole.par}</div>`)
+    .join("");
+
+  const playerRows = players
+    .map((player) => {
+      const scoreCells = player.scores
+        .map((score) => {
+          const classes = ["group-scorecell", score === null ? "missing" : "entered"].join(" ");
+          return `<div class="${classes}">${score ?? "-"}</div>`;
+        })
+        .join("");
+
+      return `
+        <div class="group-scoretable-player">
+          <div class="group-scoretable-playerhead">
             <div class="player-name">${player.name}</div>
             <div class="card-subline">Gross ${scoreLabel(player.grossToPar)} · Net ${scoreLabel(player.netToPar)}</div>
           </div>
-          <div class="mini-hole-grid">
-            ${player.scores
-              .map((score, index) => {
-                const classes = score === null ? "mini-hole non-stroke-hole" : "mini-hole stroke-hole";
-                return `<div class="${classes}"><span class="mini-hole-number">${index + 1}</span>:<span class="mini-hole-value">${score ?? "-"}</span></div>`;
-              })
-              .join("")}
+          <div class="group-scoretable-grid">
+            ${scoreCells}
           </div>
-        </article>
-      `,
-    )
+        </div>
+      `;
+    })
     .join("");
+
+  playerScorecard.innerHTML = `
+    <div class="group-scoretable-wrap">
+      <div class="group-scoretable">
+        <div class="group-scoretable-section">
+          <div class="group-scoretable-label">Hole</div>
+          <div class="group-scoretable-grid group-scoretable-grid-header">
+            ${holeHeaders}
+          </div>
+        </div>
+        <div class="group-scoretable-section">
+          <div class="group-scoretable-label">Par</div>
+          <div class="group-scoretable-grid group-scoretable-grid-par">
+            ${parRow}
+          </div>
+        </div>
+        ${playerRows}
+      </div>
+    </div>
+  `;
 }
 
 function renderActiveGroup() {

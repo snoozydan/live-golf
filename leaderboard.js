@@ -1,9 +1,6 @@
 const leaderboardEventName = document.getElementById("leaderboard-event-name");
 const leaderboardCourseName = document.getElementById("leaderboard-course-name");
 const leaderboardDescription = document.getElementById("leaderboard-description");
-const leaderboardPlayersCount = document.getElementById("leaderboard-players-count");
-const leaderboardTotalPosted = document.getElementById("leaderboard-total-posted");
-const leaderboardTopScore = document.getElementById("leaderboard-top-score");
 const leaderboardList = document.getElementById("leaderboard-list");
 const leaderboardPlayerCards = document.getElementById("leaderboard-player-cards");
 const expandedPlayers = new Set();
@@ -34,9 +31,6 @@ function renderLeaderboardPage() {
     leaderboardEventName.textContent = "No live tournament";
     leaderboardCourseName.textContent = "Choose one in admin";
     leaderboardDescription.textContent = "The admin console controls which tournament appears on the public leaderboard.";
-    leaderboardPlayersCount.textContent = "0";
-    leaderboardTotalPosted.textContent = "0";
-    leaderboardTopScore.textContent = "E";
     leaderboardList.innerHTML = `<div class="empty-state">No live tournament is currently selected.</div>`;
     leaderboardPlayerCards.innerHTML = "";
     return;
@@ -45,9 +39,13 @@ function renderLeaderboardPage() {
   leaderboardEventName.textContent = tournament.tournamentName;
   leaderboardCourseName.textContent = tournament.courseName;
   leaderboardDescription.textContent = tournament.leaderboardDescription;
-  leaderboardPlayersCount.textContent = `${tournament.players.length}`;
-  leaderboardTotalPosted.textContent = `${TournamentStore.totalPostedScores(tournament)}`;
-  leaderboardTopScore.textContent = ranked[0] ? scoreLabel(ranked[0].netToPar) : "E";
+
+  const playerGroupMap = new Map();
+  tournament.groups.forEach((group, index) => {
+    group.playerIds.forEach((playerId) => {
+      playerGroupMap.set(playerId, group.name || `Group ${index + 1}`);
+    });
+  });
 
   leaderboardList.innerHTML = ranked
     .map(
@@ -59,7 +57,7 @@ function renderLeaderboardPage() {
               <button class="player-toggle" type="button" data-player-toggle="${player.id}">
                 <span class="player-name">${player.name}</span>
               </button>
-              <div class="player-meta">${player.division} · HCP ${player.handicap} · Thru ${player.thru}</div>
+              <div class="player-meta">${playerGroupMap.get(player.id) || "No group"} · HCP ${player.handicap} · Thru ${player.thru}</div>
             </div>
             <div class="leaderboard-metric">
               <span class="metric-label">Net</span>

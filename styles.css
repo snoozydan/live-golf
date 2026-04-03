@@ -62,7 +62,8 @@ select {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .topbar h1,
@@ -88,6 +89,10 @@ select {
 .topbar-nav {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex: 1 1 420px;
+  min-width: 0;
 }
 
 .nav-link {
@@ -97,6 +102,7 @@ select {
   border-radius: 999px;
   background: rgba(13, 107, 69, 0.08);
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .nav-link.active {
@@ -760,6 +766,11 @@ button {
   .topbar {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .topbar-nav {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .admin-actions {

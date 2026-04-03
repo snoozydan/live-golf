@@ -517,6 +517,10 @@ button {
   gap: 10px;
 }
 
+.group-scorecards-area {
+  width: 100%;
+}
+
 .group-score-rows {
   display: grid;
   gap: 12px;
@@ -800,6 +804,7 @@ button {
 .group-scorecard-list {
   display: grid;
   gap: 16px;
+  width: 100%;
 }
 
 .group-scorecard-player {

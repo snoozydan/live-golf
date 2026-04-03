@@ -90,6 +90,28 @@ select {
   justify-content: center;
 }
 
+.admin-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.admin-subnav-link {
+  text-decoration: none;
+  color: var(--accent);
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(13, 107, 69, 0.08);
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.admin-subnav-link.active {
+  background: var(--accent);
+  color: white;
+}
+
 .nav-link {
   text-decoration: none;
   color: var(--accent);

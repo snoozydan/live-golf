@@ -37,6 +37,7 @@ const newPlayerFlightInput = document.getElementById("new-player-flight-input");
 const addPlayerButton = document.getElementById("add-player-button");
 const playersSectionLabel = document.getElementById("players-section-label");
 const courseSectionLabel = document.getElementById("course-section-label");
+const courseEditTargetSelect = document.getElementById("course-edit-target-select");
 
 let state = TournamentStore.loadState();
 let adminUnlocked = false;
@@ -45,6 +46,7 @@ let selectedTournamentId = TournamentStore.getLiveTournament(state)?.id || Tourn
 let draftPlayers = [];
 let draftCourse = [];
 let draftGroups = [];
+let selectedCourseEditTarget = "tournament";
 let draftSettings = {
   tournamentName: "",
   courseName: "",
@@ -139,7 +141,10 @@ function renderScopedSectionLabels() {
   }
 
   playersSectionLabel.textContent = `Players for ${tournament.tournamentName}`;
-  courseSectionLabel.textContent = `Course holes for ${tournament.courseName}`;
+  courseSectionLabel.textContent =
+    selectedCourseEditTarget === "tournament"
+      ? `Course holes for ${tournament.courseName}`
+      : "Course holes for saved course template";
 }
 
 function renderTournamentManager() {
@@ -164,6 +169,8 @@ function renderTournamentManager() {
 
   newTournamentCourseTemplateSelect.innerHTML = `<option value="">Use selected tournament course</option>${courseOptions}`;
   applyCourseTemplateSelect.innerHTML = `<option value="">Choose a saved course</option>${courseOptions}`;
+  courseEditTargetSelect.innerHTML = `<option value="tournament">Selected tournament course · ${selectedTournament()?.courseName || ""}</option>${courseOptions}`;
+  courseEditTargetSelect.value = selectedCourseEditTarget;
 }
 
 function renderSettings() {
@@ -237,7 +244,13 @@ function renderAdminPlayers() {
 }
 
 function renderAdminCourse() {
-  adminCourseList.innerHTML = draftCourse
+  const courseTemplates = TournamentStore.listCourseTemplates(state);
+  const activeCourse =
+    selectedCourseEditTarget === "tournament"
+      ? draftCourse
+      : courseTemplates.find((template) => template.id === selectedCourseEditTarget)?.course || draftCourse;
+
+  adminCourseList.innerHTML = activeCourse
     .map(
       (hole) => `
         <article class="admin-row">
@@ -269,7 +282,11 @@ function renderAdminCourse() {
   document.querySelectorAll("[data-hole-form]").forEach((form) => {
     form.addEventListener("input", () => {
       const holeNumber = Number(form.getAttribute("data-hole-form"));
-      const hole = draftCourse[holeNumber - 1];
+      const hole =
+        selectedCourseEditTarget === "tournament"
+          ? draftCourse[holeNumber - 1]
+          : TournamentStore.listCourseTemplates(state).find((template) => template.id === selectedCourseEditTarget)
+              ?.course[holeNumber - 1];
       if (!hole) {
         return;
       }
@@ -421,6 +438,12 @@ tournamentNameInput.addEventListener("input", () => {
 courseNameInput.addEventListener("input", () => {
   draftSettings.courseName = courseNameInput.value;
   adminLoginMessage.textContent = "Unsaved admin changes.";
+});
+
+courseEditTargetSelect.addEventListener("change", () => {
+  selectedCourseEditTarget = courseEditTargetSelect.value;
+  renderScopedSectionLabels();
+  renderAdminCourse();
 });
 
 tournamentStatusInput.addEventListener("change", () => {
@@ -646,13 +669,29 @@ saveButton.addEventListener("click", () => {
       });
     });
 
-  draftCourse.forEach((hole) => {
-    nextState = TournamentStore.updateHole(nextState, selectedTournamentId, hole.hole, {
-      par: hole.par,
-      strokeIndex: hole.strokeIndex,
-      yardage: hole.yardage,
+  if (selectedCourseEditTarget === "tournament") {
+    draftCourse.forEach((hole) => {
+      nextState = TournamentStore.updateHole(nextState, selectedTournamentId, hole.hole, {
+        par: hole.par,
+        strokeIndex: hole.strokeIndex,
+        yardage: hole.yardage,
+      });
     });
-  });
+  } else {
+    const selectedTemplate = TournamentStore.listCourseTemplates(state).find(
+      (template) => template.id === selectedCourseEditTarget,
+    );
+    if (selectedTemplate) {
+      selectedTemplate.course.forEach((hole) => {
+        nextState = TournamentStore.updateCourseTemplate(nextState, selectedTemplate.id, {
+          holeNumber: hole.hole,
+          par: hole.par,
+          strokeIndex: hole.strokeIndex,
+          yardage: hole.yardage,
+        });
+      });
+    }
+  }
 
   nextState = TournamentStore.updateTournamentGroups(nextState, selectedTournamentId, draftGroups);
 

@@ -740,6 +740,31 @@
     return saveState(nextState);
   }
 
+  function updateCourseTemplate(state, templateId, changes) {
+    const nextState = normalizeState(state);
+    nextState.courseTemplates = nextState.courseTemplates.map((template) => {
+      if (template.id !== templateId) {
+        return template;
+      }
+
+      return {
+        ...template,
+        name: String(changes.name || "").trim() || template.name,
+        course: template.course.map((hole) =>
+          hole.hole === changes.holeNumber
+            ? {
+                ...hole,
+                par: Math.max(3, Number(changes.par) || hole.par),
+                strokeIndex: Math.min(18, Math.max(1, Number(changes.strokeIndex) || hole.strokeIndex)),
+                yardage: Math.max(1, Number(changes.yardage) || hole.yardage),
+              }
+            : hole,
+        ),
+      };
+    });
+    return saveState(nextState);
+  }
+
   function deleteTournament(state, tournamentId) {
     const nextState = normalizeState(state);
     const remaining = nextState.tournaments.filter((tournament) => tournament.id !== tournamentId);
@@ -811,6 +836,7 @@
     clearTournamentScores,
     applyCourseTemplate,
     saveTournamentCourseAsTemplate,
+    updateCourseTemplate,
     setLeaderboardTournament,
     deleteTournament,
     findPlayerByCode,

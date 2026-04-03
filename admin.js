@@ -13,7 +13,7 @@ const courseNameInput = document.getElementById("course-name-input");
 const tournamentStatusInput = document.getElementById("tournament-status-input");
 const leaderboardDescriptionInput = document.getElementById("leaderboard-description-input");
 const adminTournamentSelect = document.getElementById("admin-tournament-select");
-const liveTournamentDisplay = document.getElementById("live-tournament-display");
+const liveTournamentSelect = document.getElementById("live-tournament-select");
 const setLiveButton = document.getElementById("set-live-button");
 const newTournamentNameInput = document.getElementById("new-tournament-name-input");
 const newCourseNameInput = document.getElementById("new-course-name-input");
@@ -152,16 +152,17 @@ function renderScopedSectionLabels() {
 function renderTournamentManager() {
   const tournaments = TournamentStore.listTournaments(state);
   const liveTournament = TournamentStore.getLiveTournament(state);
-  adminTournamentSelect.innerHTML = tournaments
+  const options = tournaments
     .map(
       (tournament) =>
         `<option value="${tournament.id}">${tournament.tournamentName} · ${tournament.courseName} · ${tournament.status}</option>`,
     )
     .join("");
+
+  adminTournamentSelect.innerHTML = options;
+  liveTournamentSelect.innerHTML = options;
   adminTournamentSelect.value = selectedTournamentId || "";
-  liveTournamentDisplay.value = liveTournament
-    ? `${liveTournament.tournamentName} · ${liveTournament.courseName}`
-    : "No live tournament selected";
+  liveTournamentSelect.value = liveTournament?.id || "";
 }
 
 function renderSettings() {
@@ -357,10 +358,13 @@ leaderboardDescriptionInput.addEventListener("input", () => {
 });
 
 setLiveButton.addEventListener("click", () => {
-  if (!selectedTournamentId) {
+  const liveTournamentId = liveTournamentSelect.value;
+
+  if (!liveTournamentId) {
     return;
   }
-  state = TournamentStore.setLeaderboardTournament(state, selectedTournamentId);
+
+  state = TournamentStore.setLeaderboardTournament(state, liveTournamentId);
   adminLoginMessage.textContent = "Selected tournament is now the public live leaderboard.";
   rerender(true);
 });

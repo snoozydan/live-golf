@@ -159,12 +159,6 @@ select {
   color: rgba(246, 255, 249, 0.72);
 }
 
-.hero-card-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
 .stat-number {
   display: block;
   font-size: 2rem;
@@ -172,6 +166,42 @@ select {
 }
 
 .stat-label {
+  font-size: 0.84rem;
+  color: rgba(246, 255, 249, 0.74);
+}
+
+.snapshot-leaders {
+  display: grid;
+  gap: 10px;
+}
+
+.snapshot-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.snapshot-name {
+  font-weight: 800;
+}
+
+.snapshot-meta {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: rgba(246, 255, 249, 0.72);
+}
+
+.snapshot-score {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.hero-card-note {
+  margin-top: 14px;
   font-size: 0.84rem;
   color: rgba(246, 255, 249, 0.74);
 }
@@ -432,6 +462,15 @@ button {
 .player-session-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.link-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  text-decoration: underline;
 }
 
 .summary-badge {

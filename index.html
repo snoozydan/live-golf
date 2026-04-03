@@ -35,19 +35,9 @@
         </div>
         <div class="hero-card">
           <p class="hero-card-label">Tournament Snapshot</p>
-          <div class="hero-card-stats">
-            <div>
-              <span class="stat-number" id="players-count">0</span>
-              <span class="stat-label">Players</span>
-            </div>
-            <div>
-              <span class="stat-number" id="holes-logged">0</span>
-              <span class="stat-label">Scores Posted</span>
-            </div>
-            <div>
-              <span class="stat-number" id="leader-net">E</span>
-              <span class="stat-label">Leading Net</span>
-            </div>
+          <div id="snapshot-leaders" class="snapshot-leaders"></div>
+          <div class="hero-card-note">
+            Current top positions in the live tournament
           </div>
         </div>
       </section>
@@ -107,7 +97,7 @@
               </div>
             </div>
             <div class="player-session-actions">
-              <button id="player-signout-button" class="ghost-button" type="button">Sign out</button>
+              <button id="player-signout-button" class="link-button" type="button">Sign out</button>
             </div>
 
             <form id="player-score-form" class="score-entry-form">

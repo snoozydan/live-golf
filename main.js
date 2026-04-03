@@ -18,9 +18,7 @@ const updatesFeed = document.getElementById("updates-feed");
 
 const eventName = document.getElementById("event-name");
 const courseName = document.getElementById("course-name");
-const playersCount = document.getElementById("players-count");
-const holesLogged = document.getElementById("holes-logged");
-const leaderNet = document.getElementById("leader-net");
+const snapshotLeaders = document.getElementById("snapshot-leaders");
 
 let state = TournamentStore.loadState();
 let activePlayerId = null;
@@ -106,17 +104,26 @@ function renderHeaderMetrics() {
   if (!tournament) {
     eventName.textContent = "No live tournament";
     courseName.textContent = "Set one in the admin console";
-    playersCount.textContent = "0";
-    holesLogged.textContent = "0";
-    leaderNet.textContent = "E";
+    snapshotLeaders.innerHTML = `<div class="empty-state">No live tournament selected.</div>`;
     return;
   }
 
   eventName.textContent = tournament.tournamentName;
   courseName.textContent = tournament.courseName;
-  playersCount.textContent = `${tournament.players.length}`;
-  holesLogged.textContent = `${TournamentStore.totalPostedScores(tournament)}`;
-  leaderNet.textContent = ranked[0] ? scoreLabel(ranked[0].netToPar) : "E";
+  snapshotLeaders.innerHTML = ranked
+    .slice(0, 3)
+    .map(
+      (player) => `
+        <div class="snapshot-row">
+          <div>
+            <div class="snapshot-name">${player.rank} · ${player.name}</div>
+            <div class="snapshot-meta">Thru ${player.thru}</div>
+          </div>
+          <div class="snapshot-score ${scoreTone(player.netToPar)}">${scoreLabel(player.netToPar)}</div>
+        </div>
+      `,
+    )
+    .join("");
 }
 
 function renderUpdates() {

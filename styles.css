@@ -208,6 +208,12 @@ select {
   color: #ffffff;
 }
 
+.snapshot-score.score-under,
+.snapshot-score.score-over,
+.snapshot-score.score-even {
+  color: #ffffff;
+}
+
 .hero-card-note {
   margin-top: 14px;
   font-size: 0.84rem;

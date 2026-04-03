@@ -30,12 +30,6 @@ const newPlayerFlightInput = document.getElementById("new-player-flight-input");
 const addPlayerButton = document.getElementById("add-player-button");
 const playersSectionLabel = document.getElementById("players-section-label");
 const courseSectionLabel = document.getElementById("course-section-label");
-const adminTabs = Array.from(document.querySelectorAll(".admin-tab"));
-const adminTabPanels = {
-  settings: document.getElementById("admin-tab-settings-panel"),
-  players: document.getElementById("admin-tab-players-panel"),
-  course: document.getElementById("admin-tab-course-panel"),
-};
 
 const adminEventName = document.getElementById("admin-event-name");
 const adminCourseName = document.getElementById("admin-course-name");
@@ -55,7 +49,6 @@ let draftSettings = {
   leaderboardDescription: "",
   status: "live",
 };
-let activeTab = "settings";
 
 function scoreLabel(value) {
   if (value === 0) {
@@ -285,17 +278,6 @@ function renderAdminCourse() {
   });
 }
 
-function renderTabs() {
-  adminTabs.forEach((tab) => {
-    const isActive = tab.getAttribute("data-tab") === activeTab;
-    tab.classList.toggle("active", isActive);
-  });
-
-  Object.entries(adminTabPanels).forEach(([name, panel]) => {
-    panel.classList.toggle("hidden", name !== activeTab);
-  });
-}
-
 function rerender(reload) {
   if (reload) {
     refreshState();
@@ -316,7 +298,6 @@ function rerender(reload) {
   renderWorkspaceHeader();
   renderScopedSectionLabels();
   renderSettings();
-  renderTabs();
   renderAdminPlayers();
   renderAdminCourse();
 }
@@ -556,13 +537,6 @@ window.addEventListener("storage", () => {
   refreshState();
   restoreAdminSession();
   rerender(false);
-});
-
-adminTabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
-    activeTab = tab.getAttribute("data-tab");
-    renderTabs();
-  });
 });
 
 restoreAdminSession();

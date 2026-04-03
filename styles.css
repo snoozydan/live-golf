@@ -186,7 +186,14 @@ select {
 }
 
 .snapshot-name {
+  display: flex;
+  gap: 10px;
+  align-items: center;
   font-weight: 800;
+}
+
+.snapshot-place {
+  min-width: 30px;
 }
 
 .snapshot-meta {
@@ -205,6 +212,19 @@ select {
   margin-top: 14px;
   font-size: 0.84rem;
   color: rgba(246, 255, 249, 0.74);
+}
+
+.hero-card-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
 }
 
 .dashboard-grid {
@@ -808,6 +828,15 @@ button {
     width: 100%;
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .signin-panel-heading {
+    align-items: center;
+  }
+
+  .signin-panel-heading .link-button {
+    align-self: flex-end;
+    margin-top: 4px;
   }
 
   .admin-workspace-header,

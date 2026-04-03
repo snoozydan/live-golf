@@ -116,7 +116,10 @@ function renderHeaderMetrics() {
       (player) => `
         <div class="snapshot-row">
           <div>
-            <div class="snapshot-name">T${String(player.rank).replace(/^T/, "")} · ${player.name}</div>
+            <div class="snapshot-name">
+              <span class="snapshot-place">T${String(player.rank).replace(/^T/, "")}</span>
+              <span>${player.name}</span>
+            </div>
             <div class="snapshot-meta">Thru ${player.thru}</div>
           </div>
           <div class="snapshot-score ${scoreTone(player.netToPar)}">${scoreLabel(player.netToPar)}</div>

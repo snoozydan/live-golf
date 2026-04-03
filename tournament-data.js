@@ -82,6 +82,20 @@
     ];
   }
 
+  function createGroups(players) {
+    const groups = [];
+    for (let index = 0; index < players.length; index += 4) {
+      const number = Math.floor(index / 4) + 1;
+      groups.push({
+        id: `g${number}`,
+        name: `Group ${number}`,
+        scorerCode: `GRP${number}`,
+        playerIds: players.slice(index, index + 4).map((player) => player.id),
+      });
+    }
+    return groups;
+  }
+
   function createTournament(overrides) {
     return {
       id: overrides.id || makeId("tournament"),
@@ -94,6 +108,7 @@
       updatedAt: overrides.updatedAt || Date.now(),
       course: overrides.course || createCourse(),
       players: overrides.players || [],
+      groups: overrides.groups || createGroups(overrides.players || []),
       updates: overrides.updates || [],
     };
   }
@@ -191,6 +206,16 @@
       updatedAt: tournament.updatedAt || Date.now(),
       course: normalizeCourse(Array.isArray(tournament.course) ? tournament.course : fallback.course, fallback.course),
       players: normalizePlayers(Array.isArray(tournament.players) ? tournament.players : fallback.players, fallback.players),
+      groups: Array.isArray(tournament.groups)
+        ? tournament.groups.map((group, index) => ({
+            id: group.id || `g${index + 1}`,
+            name: group.name || `Group ${index + 1}`,
+            scorerCode: String(group.scorerCode || `GRP${index + 1}`).toUpperCase(),
+            playerIds: Array.isArray(group.playerIds) ? group.playerIds.filter(Boolean) : [],
+          }))
+        : createGroups(
+            normalizePlayers(Array.isArray(tournament.players) ? tournament.players : fallback.players, fallback.players),
+          ),
       updates: Array.isArray(tournament.updates) ? tournament.updates : fallback.updates,
     };
   }
@@ -433,6 +458,18 @@
     });
   }
 
+  function updateTournamentGroups(state, tournamentId, groups) {
+    return updateTournament(state, tournamentId, (tournament) => ({
+      ...tournament,
+      groups: groups.map((group, index) => ({
+        id: group.id || `g${index + 1}`,
+        name: String(group.name || `Group ${index + 1}`).trim(),
+        scorerCode: String(group.scorerCode || `GRP${index + 1}`).trim().toUpperCase(),
+        playerIds: Array.isArray(group.playerIds) ? group.playerIds.filter(Boolean) : [],
+      })),
+    }));
+  }
+
   function updatePlayerHandicap(state, tournamentId, playerId, handicap) {
     return updateTournament(state, tournamentId, (tournament) => ({
       ...tournament,
@@ -526,8 +563,31 @@
             scores: new Array(18).fill(null),
           }))
         : [],
+      groups: sourceTournament
+        ? sourceTournament.groups.map((group, index) => ({
+            id: `g${index + 1}`,
+            name: group.name,
+            scorerCode: `GRP${index + 1}`,
+            playerIds: [],
+          }))
+        : [],
       updates: [],
     });
+
+    if (sourceTournament) {
+      const sourcePlayers = tournament.players;
+      tournament.groups = sourceTournament.groups.map((group, groupIndex) => ({
+        id: `g${groupIndex + 1}`,
+        name: group.name,
+        scorerCode: `GRP${groupIndex + 1}`,
+        playerIds: group.playerIds
+          .map((oldId) => {
+            const oldIndex = sourceTournament.players.findIndex((player) => player.id === oldId);
+            return oldIndex >= 0 ? sourcePlayers[oldIndex].id : null;
+          })
+          .filter(Boolean),
+      }));
+    }
 
     nextState.tournaments = [...nextState.tournaments, tournament];
     if (!nextState.leaderboardTournamentId) {
@@ -554,8 +614,31 @@
         id: makeId(`player${index + 1}`),
         scores: new Array(18).fill(null),
       })),
+      groups: source.groups.map((group, groupIndex) => ({
+        id: `g${groupIndex + 1}`,
+        name: group.name,
+        scorerCode: `GRP${groupIndex + 1}`,
+        playerIds: group.playerIds
+          .map((oldId) => {
+            const oldIndex = source.players.findIndex((player) => player.id === oldId);
+            return oldIndex >= 0 ? source.players[oldIndex].id : null;
+          })
+          .filter(Boolean),
+      })),
       updates: [],
     });
+
+    duplicate.groups = source.groups.map((group, groupIndex) => ({
+      id: `g${groupIndex + 1}`,
+      name: group.name,
+      scorerCode: `GRP${groupIndex + 1}`,
+      playerIds: group.playerIds
+        .map((oldId) => {
+          const oldIndex = source.players.findIndex((player) => player.id === oldId);
+          return oldIndex >= 0 ? duplicate.players[oldIndex].id : null;
+        })
+        .filter(Boolean),
+    }));
 
     nextState.tournaments = [...nextState.tournaments, duplicate];
     return saveState(nextState);
@@ -583,6 +666,10 @@
       return {
         ...tournament,
         players: [...tournament.players, player],
+        groups:
+          tournament.groups.length === 0
+            ? [{ id: "g1", name: "Group 1", scorerCode: "GRP1", playerIds: [player.id] }]
+            : tournament.groups,
       };
     });
   }
@@ -591,6 +678,10 @@
     return updateTournament(state, tournamentId, (tournament) => ({
       ...tournament,
       players: tournament.players.filter((player) => player.id !== playerId),
+      groups: tournament.groups.map((group) => ({
+        ...group,
+        playerIds: group.playerIds.filter((id) => id !== playerId),
+      })),
       updates: tournament.updates.filter((update) => update.playerId !== playerId),
     }));
   }
@@ -672,6 +763,11 @@
     return tournament?.players.find((player) => player.accessCode === cleaned) || null;
   }
 
+  function findGroupByCode(tournament, code) {
+    const cleaned = String(code || "").trim().toUpperCase();
+    return tournament?.groups.find((group) => group.scorerCode === cleaned) || null;
+  }
+
   function validateAdminCode(state, code) {
     return String(code || "").trim() === String(state.adminCode || "");
   }
@@ -703,6 +799,7 @@
     rankedPlayers,
     computePlayer,
     updatePlayerScore,
+    updateTournamentGroups,
     updatePlayerHandicap,
     updatePlayerDetails,
     updateTournamentSettings,
@@ -717,6 +814,7 @@
     setLeaderboardTournament,
     deleteTournament,
     findPlayerByCode,
+    findGroupByCode,
     validateAdminCode,
     totalPostedScores,
   };

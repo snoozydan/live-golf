@@ -517,6 +517,26 @@ button {
   gap: 10px;
 }
 
+.group-score-rows {
+  display: grid;
+  gap: 12px;
+}
+
+.group-score-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(24, 36, 27, 0.06);
+}
+
+.group-score-name {
+  font-weight: 800;
+}
+
 .score-hole-card {
   padding: 12px;
 }
@@ -766,6 +786,17 @@ button {
   background: rgba(13, 107, 69, 0.06);
 }
 
+.group-player-card {
+  border-radius: 20px;
+  border: 1px solid rgba(24, 36, 27, 0.06);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 16px;
+}
+
+.group-player-card-header {
+  margin-bottom: 12px;
+}
+
 .player-card {
   padding: 18px;
 }
@@ -927,6 +958,10 @@ button {
   }
 
   .score-entry-form {
+    grid-template-columns: 1fr;
+  }
+
+  .group-score-row {
     grid-template-columns: 1fr;
   }
 

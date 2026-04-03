@@ -5,6 +5,7 @@ const adminSignoutButton = document.getElementById("admin-signout-button");
 const adminManagerPanel = document.getElementById("admin-manager-panel");
 const adminControlsPanel = document.getElementById("admin-controls-panel");
 const adminPlayerList = document.getElementById("admin-player-list");
+const adminGroupList = document.getElementById("admin-group-list");
 const adminCourseList = document.getElementById("admin-course-list");
 const resetButton = document.getElementById("reset-button");
 const saveButton = document.getElementById("save-button");
@@ -49,6 +50,7 @@ const ADMIN_SESSION_KEY = "fairway-live-admin-session-v1";
 let selectedTournamentId = TournamentStore.getLiveTournament(state)?.id || TournamentStore.listTournaments(state)[0]?.id || null;
 let draftPlayers = [];
 let draftCourse = [];
+let draftGroups = [];
 let draftSettings = {
   tournamentName: "",
   courseName: "",
@@ -92,6 +94,7 @@ function syncDraftsFromState() {
   if (!tournament) {
     draftPlayers = [];
     draftCourse = [];
+    draftGroups = [];
     draftSettings = {
       tournamentName: "",
       courseName: "",
@@ -103,6 +106,7 @@ function syncDraftsFromState() {
 
   draftPlayers = tournament.players.map((player) => ({ ...player, scores: [...player.scores] }));
   draftCourse = tournament.course.map((hole) => ({ ...hole }));
+  draftGroups = tournament.groups.map((group) => ({ ...group, playerIds: [...group.playerIds] }));
   draftSettings = {
     tournamentName: tournament.tournamentName,
     courseName: tournament.courseName,
@@ -293,6 +297,81 @@ function renderAdminCourse() {
   });
 }
 
+function renderAdminGroups() {
+  const playerOptions = draftPlayers
+    .map((player) => `<option value="${player.id}">${player.name}</option>`)
+    .join("");
+
+  adminGroupList.innerHTML = draftGroups
+    .map((group, index) => {
+      const slots = new Array(4).fill("").map((_, slotIndex) => group.playerIds[slotIndex] || "");
+      return `
+        <article class="admin-row">
+          <div class="admin-row-header">
+            <div>
+              <div class="player-name">${group.name || `Group ${index + 1}`}</div>
+              <div class="admin-meta">Scorer code ${group.scorerCode}</div>
+            </div>
+          </div>
+          <form class="admin-group-form" data-group-form="${group.id}">
+            <div class="admin-controls admin-controls-four">
+              <label>
+                Group name
+                <input type="text" name="name" value="${group.name}" />
+              </label>
+              <label>
+                Scorer code
+                <input type="text" maxlength="8" name="scorerCode" value="${group.scorerCode}" />
+              </label>
+              <label>
+                Player 1
+                <select name="player-0"><option value="">Open slot</option>${playerOptions}</select>
+              </label>
+              <label>
+                Player 2
+                <select name="player-1"><option value="">Open slot</option>${playerOptions}</select>
+              </label>
+              <label>
+                Player 3
+                <select name="player-2"><option value="">Open slot</option>${playerOptions}</select>
+              </label>
+              <label>
+                Player 4
+                <select name="player-3"><option value="">Open slot</option>${playerOptions}</select>
+              </label>
+            </div>
+          </form>
+        </article>
+      `;
+    })
+    .join("");
+
+  document.querySelectorAll("[data-group-form]").forEach((form) => {
+    const groupId = form.getAttribute("data-group-form");
+    const group = draftGroups.find((entry) => entry.id === groupId);
+    if (!group) {
+      return;
+    }
+
+    for (let index = 0; index < 4; index += 1) {
+      const select = form.querySelector(`select[name="player-${index}"]`);
+      if (select) {
+        select.value = group.playerIds[index] || "";
+      }
+    }
+
+    form.addEventListener("input", () => {
+      group.name = form.querySelector('input[name="name"]').value;
+      group.scorerCode = form.querySelector('input[name="scorerCode"]').value.toUpperCase();
+      group.playerIds = new Array(4)
+        .fill("")
+        .map((_, index) => form.querySelector(`select[name="player-${index}"]`).value)
+        .filter(Boolean);
+      adminLoginMessage.textContent = "Unsaved admin changes.";
+    });
+  });
+}
+
 function rerender(reload) {
   if (reload) {
     refreshState();
@@ -314,6 +393,7 @@ function rerender(reload) {
   renderScopedSectionLabels();
   renderSettings();
   renderAdminPlayers();
+  renderAdminGroups();
   renderAdminCourse();
 }
 
@@ -518,6 +598,7 @@ addPlayerButton.addEventListener("click", () => {
   newPlayerFlightInput.value = "";
   adminLoginMessage.textContent = "Unsaved admin changes.";
   renderAdminPlayers();
+  renderAdminGroups();
   renderWorkspaceHeader();
 });
 
@@ -534,6 +615,16 @@ saveButton.addEventListener("click", () => {
       return;
     }
     seenCodes.add(code);
+  }
+
+  const seenGroupCodes = new Set();
+  for (const group of draftGroups) {
+    const code = String(group.scorerCode || "").trim().toUpperCase();
+    if (!code || seenGroupCodes.has(code)) {
+      adminLoginMessage.textContent = "Each group needs a unique scorer code before saving.";
+      return;
+    }
+    seenGroupCodes.add(code);
   }
 
   let nextState = TournamentStore.loadState();
@@ -579,6 +670,8 @@ saveButton.addEventListener("click", () => {
       yardage: hole.yardage,
     });
   });
+
+  nextState = TournamentStore.updateTournamentGroups(nextState, selectedTournamentId, draftGroups);
 
   (latestTournament?.players || [])
     .filter((player) => !draftIds.has(player.id))

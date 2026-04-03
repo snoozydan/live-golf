@@ -47,39 +47,39 @@
         <section class="panel">
           <div class="panel-heading signin-panel-heading">
             <div>
-              <p class="panel-kicker">Player Sign In</p>
-              <h2>Use your player code</h2>
+              <p class="panel-kicker">Group Sign In</p>
+              <h2>Use your group scorer code</h2>
             </div>
             <button id="player-signout-button" class="link-button" type="button">Sign out</button>
           </div>
           <form id="login-form" class="stack-form">
             <label>
-              Player code
+              Group scorer code
               <input
                 id="player-code-input"
                 type="text"
                 maxlength="8"
                 autocomplete="off"
-                placeholder="Example: AB12"
+                placeholder="Example: GRP1"
                 required
               />
             </label>
-            <button type="submit" class="primary-button">Open player scoring</button>
+            <button type="submit" class="primary-button">Open group scoring</button>
           </form>
           <div id="login-message" class="info-card muted-card">
-            Enter a player’s short code to unlock only that player’s score entry.
+            Enter a group scorer code to unlock score entry for that foursome.
           </div>
         </section>
 
         <section class="panel panel-wide">
           <div class="panel-heading">
             <div>
-              <p class="panel-kicker">Player Scoring</p>
-              <h2 id="player-panel-title">No player selected</h2>
+              <p class="panel-kicker">Group Scoring</p>
+              <h2 id="player-panel-title">No group selected</h2>
             </div>
           </div>
           <div id="player-panel-empty" class="empty-state">
-            Choose a player code to see that player’s card, scoring form, and stroke holes.
+            Choose a group scorer code to enter scores for that group.
           </div>
           <div id="player-panel" class="player-panel hidden">
             <div class="player-summary">
@@ -89,12 +89,12 @@
               </div>
               <div class="summary-badges">
                 <div class="summary-badge">
-                  <span class="badge-label">Handicap</span>
+                  <span class="badge-label">Players</span>
                   <span class="badge-value" id="selected-player-handicap">0</span>
                 </div>
                 <div class="summary-badge">
-                  <span class="badge-label">Net</span>
-                  <span class="badge-value" id="selected-player-net">E</span>
+                  <span class="badge-label">Code</span>
+                  <span class="badge-value" id="selected-player-net">GRP1</span>
                 </div>
               </div>
             </div>
@@ -103,20 +103,19 @@
                 Hole
                 <select id="player-hole-select"></select>
               </label>
-              <label>
-                Strokes
-                <input id="player-strokes-input" type="number" min="1" max="15" required />
-              </label>
-              <button type="submit" class="primary-button">Post score</button>
+              <div class="button-stack">
+                <button type="submit" class="primary-button">Post group scores</button>
+              </div>
             </form>
+            <div id="group-score-rows" class="group-score-rows"></div>
 
             <div>
-              <div class="section-subtitle">Stroke holes for this player</div>
+              <div class="section-subtitle">Players in this group</div>
               <div id="stroke-hole-grid" class="stroke-hole-grid"></div>
             </div>
 
             <div>
-              <div class="section-subtitle">18-hole scorecard</div>
+              <div class="section-subtitle">Group scorecards</div>
               <div id="player-scorecard" class="scorecard-grid"></div>
             </div>
           </div>

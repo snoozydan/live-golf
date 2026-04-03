@@ -92,12 +92,9 @@ select {
 
 .admin-subnav {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 18px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: thin;
 }
 
 .admin-subnav-link {
@@ -1054,6 +1051,13 @@ button {
   .topbar-nav {
     width: 100%;
     justify-content: center;
+  }
+
+  .admin-subnav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
   }
 
   .admin-actions {

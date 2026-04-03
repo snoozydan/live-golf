@@ -179,21 +179,21 @@ function renderGroupCards(group, tournament) {
       const backTotal = backScores.reduce((sum, score) => sum + (score ?? 0), 0);
 
       const renderNine = (holes, scores) => `
-        <div class="group-scorecard-nine">
-          <div class="group-scorecard-row group-scorecard-row-head">
-            <div class="group-scorecard-label">Hole</div>
-            ${holes.map((hole) => `<div class="group-scorebox group-scorebox-head">${hole.hole}</div>`).join("")}
-          </div>
-          <div class="group-scorecard-row">
-            <div class="group-scorecard-label">Par</div>
-            ${holes.map((hole) => `<div class="group-scorebox group-scorebox-par">${hole.par}</div>`).join("")}
-          </div>
-          <div class="group-scorecard-row">
-            <div class="group-scorecard-label">Score</div>
-            ${scores
-              .map((score) => `<div class="group-scorebox ${score === null ? "missing" : "entered"}">${score ?? "-"}</div>`)
-              .join("")}
-          </div>
+        <div class="group-scorecard-grid">
+          ${holes
+            .map((hole, index) => {
+              const score = scores[index];
+              return `
+                <article class="group-hole-tile ${score === null ? "missing" : "entered"}">
+                  <div class="group-hole-top">
+                    <span class="group-hole-number">H${hole.hole}</span>
+                    <span class="group-hole-par">Par ${hole.par}</span>
+                  </div>
+                  <div class="group-hole-score">${score ?? "-"}</div>
+                </article>
+              `;
+            })
+            .join("")}
         </div>
       `;
 

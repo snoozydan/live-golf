@@ -829,49 +829,49 @@ button {
   margin-bottom: 8px;
 }
 
-.group-scorecard-nine {
+.group-scorecard-grid {
   display: grid;
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
-.group-scorecard-row {
-  display: grid;
-  grid-template-columns: 44px repeat(9, minmax(0, 1fr));
-  gap: 6px;
+.group-hole-tile {
+  border-radius: 16px;
+  padding: 10px;
+  border: 1px solid rgba(24, 36, 27, 0.06);
 }
 
-.group-scorecard-label {
-  display: flex;
-  align-items: center;
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: var(--muted);
-}
-
-.group-scorebox {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 34px;
-  border-radius: 12px;
-  font-weight: 700;
-  background: rgba(97, 114, 103, 0.1);
-  color: var(--no-stroke-text);
-}
-
-.group-scorebox-head,
-.group-scorebox-par {
-  background: rgba(24, 36, 27, 0.04);
-}
-
-.group-scorebox.entered {
+.group-hole-tile.entered {
   background: #dcefe4;
   color: var(--stroke-text);
 }
 
-.group-scorebox.missing {
+.group-hole-tile.missing {
   background: #e4e9eb;
   color: var(--no-stroke-text);
+}
+
+.group-hole-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.group-hole-number {
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.group-hole-par {
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+.group-hole-score {
+  margin-top: 10px;
+  font-size: 1.05rem;
+  font-weight: 800;
 }
 
 .player-card {
@@ -1046,19 +1046,16 @@ button {
     padding: 14px;
   }
 
-  .group-scorecard-row {
-    grid-template-columns: 34px repeat(9, minmax(0, 1fr));
-    gap: 4px;
+  .group-scorecard-grid {
+    gap: 8px;
   }
 
-  .group-scorebox {
-    min-height: 28px;
-    font-size: 0.78rem;
-    border-radius: 10px;
+  .group-hole-tile {
+    padding: 9px;
   }
 
-  .group-scorecard-label {
-    font-size: 0.72rem;
+  .group-hole-score {
+    font-size: 0.96rem;
   }
 
   .admin-controls {

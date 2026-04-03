@@ -455,13 +455,13 @@ button {
   font-size: 0.92rem;
 }
 
-.hidden {
-  display: none;
-}
-
 .player-panel {
   display: grid;
   gap: 20px;
+}
+
+.hidden {
+  display: none !important;
 }
 
 .player-summary {

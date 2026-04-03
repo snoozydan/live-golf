@@ -84,9 +84,9 @@
       rerender(false);
     }
 
-    function rerender(reload) {
+    async function rerender(reload) {
       if (reload) {
-        state = TournamentStore.loadState();
+        state = window.AppData?.enabled() ? await window.AppData.bootstrap() : TournamentStore.loadState();
       }
 
       if (!TournamentStore.getTournament(state, selectedTournamentId)) {
@@ -118,31 +118,31 @@
       });
     }
 
-    loginForm?.addEventListener("submit", (event) => {
+    loginForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      state = TournamentStore.loadState();
+      state = window.AppData?.enabled() ? await window.AppData.bootstrap() : TournamentStore.loadState();
       if (!TournamentStore.validateAdminCode(state, adminCodeInput.value)) {
         adminUnlocked = false;
         saveAdminSession(false);
         setMessage("That admin code is not correct.");
-        rerender(false);
+        await rerender(false);
         return;
       }
 
       adminUnlocked = true;
       saveAdminSession(true);
       setMessage("Admin controls unlocked.");
-      rerender(false);
+      await rerender(false);
     });
 
-    adminSignoutButton?.addEventListener("click", () => {
+    adminSignoutButton?.addEventListener("click", async () => {
       adminUnlocked = false;
       saveAdminSession(false);
       if (adminCodeInput) {
         adminCodeInput.value = "";
       }
       setMessage("Admin signed out on this device.");
-      rerender(false);
+      await rerender(false);
     });
 
     selectedTournamentSelect?.addEventListener("change", () => {
@@ -157,7 +157,19 @@
       rerender(false);
     });
 
-    rerender(false);
+    window.AppData?.subscribe(async () => {
+      state = await window.AppData.bootstrap();
+      selectedTournamentId = getSelectedTournamentId(state);
+      await rerender(false);
+    });
+
+    (async () => {
+      if (window.AppData?.enabled()) {
+        state = await window.AppData.bootstrap();
+        selectedTournamentId = getSelectedTournamentId(state);
+      }
+      await rerender(false);
+    })();
   }
 
   window.AdminCommon = {

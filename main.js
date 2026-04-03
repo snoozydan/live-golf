@@ -24,6 +24,7 @@ const snapshotLeaders = document.getElementById("snapshot-leaders");
 
 let state = TournamentStore.loadState();
 let activeGroupId = null;
+let selectedHoleNumber = 1;
 
 function sessionKey(tournamentId) {
   return `fairway-live-active-group-${tournamentId}`;
@@ -271,11 +272,13 @@ function renderActiveGroup() {
     .map((hole) => `<option value="${hole.hole}">Hole ${hole.hole} · Par ${hole.par}</option>`)
     .join("");
 
-  if (!playerHoleSelect.value || Number(playerHoleSelect.value) < 1 || Number(playerHoleSelect.value) > 18) {
-    playerHoleSelect.value = "1";
+  if (selectedHoleNumber < 1 || selectedHoleNumber > 18) {
+    selectedHoleNumber = 1;
   }
 
-  const holeNumber = Number(playerHoleSelect.value);
+  playerHoleSelect.value = `${selectedHoleNumber}`;
+
+  const holeNumber = selectedHoleNumber;
   previousHoleButton.disabled = holeNumber <= 1;
   nextHoleButton.disabled = holeNumber >= 18;
 
@@ -336,17 +339,17 @@ playerScoreForm.addEventListener("submit", (event) => {
 });
 
 playerHoleSelect.addEventListener("change", () => {
+  selectedHoleNumber = Number(playerHoleSelect.value);
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
-  renderGroupInputs(group, tournament);
   renderActiveGroup();
 });
 
 previousHoleButton.addEventListener("click", () => {
-  const current = Number(playerHoleSelect.value || "1");
+  const current = selectedHoleNumber;
   if (current <= 1) return;
-  playerHoleSelect.value = `${current - 1}`;
+  selectedHoleNumber = current - 1;
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
@@ -354,9 +357,9 @@ previousHoleButton.addEventListener("click", () => {
 });
 
 nextHoleButton.addEventListener("click", () => {
-  const current = Number(playerHoleSelect.value || "1");
+  const current = selectedHoleNumber;
   if (current >= 18) return;
-  playerHoleSelect.value = `${current + 1}`;
+  selectedHoleNumber = current + 1;
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
@@ -365,6 +368,7 @@ nextHoleButton.addEventListener("click", () => {
 
 playerSignoutButton.addEventListener("click", () => {
   activeGroupId = null;
+  selectedHoleNumber = 1;
   saveActiveGroupSession(null);
   playerCodeInput.value = "";
   loginMessage.textContent = "Group signed out on this device.";

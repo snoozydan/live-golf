@@ -54,7 +54,7 @@ function renderLeaderboardPage() {
       (player) => `
         <article class="leaderboard-entry">
           <div class="leaderboard-row">
-            <div><span class="rank-pill">${player.rank}</span></div>
+            <div><span class="rank-pill">T${String(player.rank).replace(/^T/, "")}</span></div>
             <div>
               <button class="player-toggle" type="button" data-player-toggle="${player.id}">
                 <span class="player-name">${player.name}</span>

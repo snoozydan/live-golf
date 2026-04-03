@@ -36,7 +36,7 @@
           <p class="hero-card-label">Tournament Snapshot</p>
           <div id="snapshot-leaders" class="snapshot-leaders"></div>
           <div class="hero-card-note">
-            Current top positions in the live tournament
+            Current top positions in the live tournament · net scores
           </div>
           <a class="hero-card-link" href="./leaderboard.html">Go to leaderboard</a>
         </div>
@@ -102,11 +102,15 @@
                 Hole
                 <select id="player-hole-select"></select>
               </label>
-              <div class="button-stack">
-                <button type="submit" class="primary-button">Post group scores</button>
+              <div class="hole-nav-actions">
+                <button id="previous-hole-button" type="button" class="ghost-button">Previous hole</button>
+                <button id="next-hole-button" type="button" class="ghost-button">Next hole</button>
               </div>
             </form>
             <div id="group-score-rows" class="group-score-rows"></div>
+            <div class="group-submit-row">
+              <button type="submit" form="player-score-form" class="primary-button">Post group scores</button>
+            </div>
 
             <div>
               <div class="section-subtitle">Players in this group</div>

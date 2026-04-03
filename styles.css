@@ -526,6 +526,13 @@ button {
   gap: 12px;
 }
 
+.hole-nav-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  align-items: end;
+}
+
 .group-score-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 120px;
@@ -539,6 +546,14 @@ button {
 
 .group-score-name {
   font-weight: 800;
+}
+
+.group-submit-row {
+  margin-top: 14px;
+}
+
+.group-submit-row .primary-button {
+  width: 100%;
 }
 
 .score-hole-card {
@@ -1045,6 +1060,12 @@ button {
 
   .group-score-row {
     grid-template-columns: 1fr;
+  }
+
+  .hole-nav-actions {
+    justify-content: stretch;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
   .group-scorecard-player {

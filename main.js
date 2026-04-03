@@ -11,6 +11,8 @@ const selectedPlayerNet = document.getElementById("selected-player-net");
 const playerHoleSelect = document.getElementById("player-hole-select");
 const playerScoreForm = document.getElementById("player-score-form");
 const playerSignoutButton = document.getElementById("player-signout-button");
+const previousHoleButton = document.getElementById("previous-hole-button");
+const nextHoleButton = document.getElementById("next-hole-button");
 const strokeHoleGrid = document.getElementById("stroke-hole-grid");
 const playerScorecard = document.getElementById("player-scorecard");
 const groupScoreRows = document.getElementById("group-score-rows");
@@ -144,7 +146,7 @@ function renderGroupInputs(group, tournament) {
       return `
         <label class="group-score-row">
           <span class="group-score-name">${player.name}</span>
-          <input type="number" min="1" max="15" name="score-${player.id}" value="${currentScore ?? tournament.course[holeNumber - 1].par}" />
+          <input type="number" min="1" max="15" name="score-${player.id}" value="${currentScore ?? ""}" placeholder="-" />
         </label>
       `;
     })
@@ -269,9 +271,13 @@ function renderActiveGroup() {
     .map((hole) => `<option value="${hole.hole}">Hole ${hole.hole} · Par ${hole.par}</option>`)
     .join("");
 
-  if (!playerHoleSelect.value) {
+  if (!playerHoleSelect.value || Number(playerHoleSelect.value) < 1 || Number(playerHoleSelect.value) > 18) {
     playerHoleSelect.value = "1";
   }
+
+  const holeNumber = Number(playerHoleSelect.value);
+  previousHoleButton.disabled = holeNumber <= 1;
+  nextHoleButton.disabled = holeNumber >= 18;
 
   renderGroupInputs(group, tournament);
   renderGroupCards(group, tournament);
@@ -314,7 +320,7 @@ playerScoreForm.addEventListener("submit", (event) => {
   let nextState = state;
   group.playerIds.forEach((playerId) => {
     const input = groupScoreRows.querySelector(`input[name="score-${playerId}"]`);
-    if (!input) return;
+    if (!input || input.value === "") return;
     nextState = TournamentStore.updatePlayerScore(
       nextState,
       tournament.id,
@@ -334,6 +340,27 @@ playerHoleSelect.addEventListener("change", () => {
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
   renderGroupInputs(group, tournament);
+  renderActiveGroup();
+});
+
+previousHoleButton.addEventListener("click", () => {
+  const current = Number(playerHoleSelect.value || "1");
+  if (current <= 1) return;
+  playerHoleSelect.value = `${current - 1}`;
+  const tournament = currentTournament();
+  const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
+  if (!group || !tournament) return;
+  renderActiveGroup();
+});
+
+nextHoleButton.addEventListener("click", () => {
+  const current = Number(playerHoleSelect.value || "1");
+  if (current >= 18) return;
+  playerHoleSelect.value = `${current + 1}`;
+  const tournament = currentTournament();
+  const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
+  if (!group || !tournament) return;
+  renderActiveGroup();
 });
 
 playerSignoutButton.addEventListener("click", () => {

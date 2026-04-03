@@ -799,7 +799,10 @@ button {
 
 .group-scoretable-wrap {
   overflow-x: auto;
-  padding-bottom: 6px;
+  padding: 8px 4px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(24, 36, 27, 0.06);
 }
 
 .group-scoretable {
@@ -835,16 +838,16 @@ button {
 
 .group-scoretable-grid {
   display: grid;
-  grid-template-columns: repeat(18, minmax(38px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(18, minmax(44px, 1fr));
+  gap: 10px;
 }
 
 .group-scorecell {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 38px;
-  border-radius: 12px;
+  min-height: 44px;
+  border-radius: 14px;
   background: rgba(97, 114, 103, 0.1);
   color: var(--no-stroke-text);
   font-weight: 700;
@@ -1033,6 +1036,36 @@ button {
 
   .group-score-row {
     grid-template-columns: 1fr;
+  }
+
+  .group-scoretable-wrap {
+    margin-inline: -4px;
+    padding: 10px 8px 12px;
+  }
+
+  .group-scoretable {
+    min-width: 980px;
+    gap: 14px;
+  }
+
+  .group-scoretable-section,
+  .group-scoretable-player {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .group-scoretable-player {
+    padding: 12px;
+  }
+
+  .group-scoretable-grid {
+    grid-template-columns: repeat(18, minmax(50px, 1fr));
+    gap: 8px;
+  }
+
+  .group-scorecell {
+    min-height: 48px;
+    font-size: 0.95rem;
   }
 
   .admin-controls {

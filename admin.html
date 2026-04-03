@@ -135,7 +135,7 @@
             <div class="manager-card">
               <div class="manager-title">3. Add tournament</div>
               <div class="manager-help">Creates a new tournament using the selected tournament as the starting template.</div>
-              <div class="admin-controls admin-controls-settings admin-controls-three admin-manager-grid">
+              <div class="admin-controls admin-controls-settings admin-controls-four admin-manager-grid">
                 <label>
                   New tournament name
                   <input id="new-tournament-name-input" type="text" placeholder="Club Championship" />
@@ -143,6 +143,10 @@
                 <label>
                   New course name
                   <input id="new-course-name-input" type="text" placeholder="South Course" />
+                </label>
+                <label>
+                  Course template
+                  <select id="new-tournament-course-template-select"></select>
                 </label>
                 <div class="button-stack">
                   <button id="create-tournament-button" type="button" class="ghost-button">Create new tournament</button>
@@ -175,6 +179,29 @@
                 Leaderboard intro text
                 <textarea id="leaderboard-description-input" rows="3"></textarea>
               </label>
+            </div>
+            <div class="admin-settings-card">
+              <div class="section-subtitle">Course templates</div>
+              <div class="admin-controls admin-controls-settings admin-controls-three admin-manager-grid">
+                <label>
+                  Apply saved course
+                  <select id="apply-course-template-select"></select>
+                </label>
+                <div></div>
+                <div class="button-stack">
+                  <button id="apply-course-template-button" type="button" class="ghost-button">Apply course to selected tournament</button>
+                </div>
+              </div>
+              <div class="admin-controls admin-controls-settings admin-controls-three admin-manager-grid">
+                <label>
+                  Save current course as
+                  <input id="save-course-template-name-input" type="text" placeholder="West Course" />
+                </label>
+                <div></div>
+                <div class="button-stack">
+                  <button id="save-course-template-button" type="button" class="ghost-button">Save course template</button>
+                </div>
+              </div>
             </div>
             <div class="admin-settings-card">
               <div class="section-subtitle">More actions</div>

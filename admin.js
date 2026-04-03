@@ -19,6 +19,7 @@ const newTournamentNameInput = document.getElementById("new-tournament-name-inpu
 const newCourseNameInput = document.getElementById("new-course-name-input");
 const createTournamentButton = document.getElementById("create-tournament-button");
 const duplicateTournamentButton = document.getElementById("duplicate-tournament-button");
+const clearScoresButton = document.getElementById("clear-scores-button");
 const deleteTournamentButton = document.getElementById("delete-tournament-button");
 const workspaceTitle = document.getElementById("workspace-title");
 const workspaceMeta = document.getElementById("workspace-meta");
@@ -395,6 +396,25 @@ duplicateTournamentButton.addEventListener("click", () => {
 
   selectedTournamentId = TournamentStore.listTournaments(state).slice(-1)[0].id;
   adminLoginMessage.textContent = "Tournament duplicated.";
+  rerender(true);
+});
+
+clearScoresButton.addEventListener("click", () => {
+  if (!selectedTournamentId) {
+    return;
+  }
+
+  const tournament = TournamentStore.getTournament(state, selectedTournamentId);
+  const confirmed = window.confirm(
+    `Clear all scores for ${tournament?.tournamentName || "this tournament"}? Players and course settings will stay.`,
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  state = TournamentStore.clearTournamentScores(state, selectedTournamentId);
+  adminLoginMessage.textContent = "All scores cleared for the selected tournament.";
   rerender(true);
 });
 

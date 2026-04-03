@@ -560,6 +560,17 @@
     }));
   }
 
+  function clearTournamentScores(state, tournamentId) {
+    return updateTournament(state, tournamentId, (tournament) => ({
+      ...tournament,
+      players: tournament.players.map((player) => ({
+        ...player,
+        scores: new Array(18).fill(null),
+      })),
+      updates: [],
+    }));
+  }
+
   function setLeaderboardTournament(state, tournamentId) {
     const nextState = normalizeState(state);
     if (!getTournament(nextState, tournamentId)) {
@@ -633,6 +644,7 @@
     duplicateTournament,
     addPlayer,
     removePlayer,
+    clearTournamentScores,
     setLeaderboardTournament,
     deleteTournament,
     findPlayerByCode,

@@ -163,7 +163,8 @@ function renderGroupCards(group, tournament) {
         <article class="score-hole-card score-entered">
           <div class="hole-card-title">${player.name}</div>
           <div class="hole-card-line">${player.division} · HCP ${player.handicap}</div>
-          <div class="hole-card-value ${scoreTone(player.netToPar)}">${scoreLabel(player.netToPar)}</div>
+          <div class="hole-card-value">Gross ${scoreLabel(player.grossToPar)}</div>
+          <div class="hole-card-line">Net ${scoreLabel(player.netToPar)}</div>
         </article>
       `,
     )

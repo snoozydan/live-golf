@@ -836,7 +836,7 @@ button {
 
 .group-scorecard-row {
   display: grid;
-  grid-template-columns: 54px repeat(9, minmax(0, 1fr));
+  grid-template-columns: 44px repeat(9, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -1047,13 +1047,18 @@ button {
   }
 
   .group-scorecard-row {
-    grid-template-columns: 48px repeat(9, minmax(34px, 1fr));
-    gap: 5px;
+    grid-template-columns: 34px repeat(9, minmax(0, 1fr));
+    gap: 4px;
   }
 
   .group-scorebox {
-    min-height: 32px;
-    font-size: 0.86rem;
+    min-height: 28px;
+    font-size: 0.78rem;
+    border-radius: 10px;
+  }
+
+  .group-scorecard-label {
+    font-size: 0.72rem;
   }
 
   .admin-controls {

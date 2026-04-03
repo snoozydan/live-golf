@@ -169,56 +169,56 @@ function renderGroupCards(group, tournament) {
     )
     .join("");
 
-  const holeHeaders = tournament.course
-    .map((hole) => `<div class="group-scorecell group-scorecell-hole">${hole.hole}</div>`)
-    .join("");
-
-  const parRow = tournament.course
-    .map((hole) => `<div class="group-scorecell">${hole.par}</div>`)
-    .join("");
-
   const playerRows = players
     .map((player) => {
-      const scoreCells = player.scores
-        .map((score) => {
-          const classes = ["group-scorecell", score === null ? "missing" : "entered"].join(" ");
-          return `<div class="${classes}">${score ?? "-"}</div>`;
-        })
-        .join("");
+      const frontNine = tournament.course.slice(0, 9);
+      const backNine = tournament.course.slice(9, 18);
+      const frontScores = player.scores.slice(0, 9);
+      const backScores = player.scores.slice(9, 18);
+      const frontTotal = frontScores.reduce((sum, score) => sum + (score ?? 0), 0);
+      const backTotal = backScores.reduce((sum, score) => sum + (score ?? 0), 0);
 
-      return `
-        <div class="group-scoretable-player">
-          <div class="group-scoretable-playerhead">
-            <div class="player-name">${player.name}</div>
-            <div class="card-subline">Gross ${scoreLabel(player.grossToPar)} · Net ${scoreLabel(player.netToPar)}</div>
+      const renderNine = (holes, scores) => `
+        <div class="group-scorecard-nine">
+          <div class="group-scorecard-row group-scorecard-row-head">
+            <div class="group-scorecard-label">Hole</div>
+            ${holes.map((hole) => `<div class="group-scorebox group-scorebox-head">${hole.hole}</div>`).join("")}
           </div>
-          <div class="group-scoretable-grid">
-            ${scoreCells}
+          <div class="group-scorecard-row">
+            <div class="group-scorecard-label">Par</div>
+            ${holes.map((hole) => `<div class="group-scorebox group-scorebox-par">${hole.par}</div>`).join("")}
+          </div>
+          <div class="group-scorecard-row">
+            <div class="group-scorecard-label">Score</div>
+            ${scores
+              .map((score) => `<div class="group-scorebox ${score === null ? "missing" : "entered"}">${score ?? "-"}</div>`)
+              .join("")}
           </div>
         </div>
+      `;
+
+      return `
+        <article class="group-scorecard-player">
+          <div class="group-scorecard-playerhead">
+            <div class="player-name">${player.name}</div>
+            <div class="card-subline">Gross ${scoreLabel(player.grossToPar)} · Net ${scoreLabel(player.netToPar)} · Total ${player.gross || "-"}</div>
+          </div>
+          <div class="group-scorecard-halves">
+            <div>
+              <div class="group-scorecard-half-title">Front 9 · ${frontTotal}</div>
+              ${renderNine(frontNine, frontScores)}
+            </div>
+            <div>
+              <div class="group-scorecard-half-title">Back 9 · ${backTotal}</div>
+              ${renderNine(backNine, backScores)}
+            </div>
+          </div>
+        </article>
       `;
     })
     .join("");
 
-  playerScorecard.innerHTML = `
-    <div class="group-scoretable-wrap">
-      <div class="group-scoretable">
-        <div class="group-scoretable-section">
-          <div class="group-scoretable-label">Hole</div>
-          <div class="group-scoretable-grid group-scoretable-grid-header">
-            ${holeHeaders}
-          </div>
-        </div>
-        <div class="group-scoretable-section">
-          <div class="group-scoretable-label">Par</div>
-          <div class="group-scoretable-grid group-scoretable-grid-par">
-            ${parRow}
-          </div>
-        </div>
-        ${playerRows}
-      </div>
-    </div>
-  `;
+  playerScorecard.innerHTML = `<div class="group-scorecard-list">${playerRows}</div>`;
 }
 
 function renderActiveGroup() {

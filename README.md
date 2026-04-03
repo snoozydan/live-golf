@@ -49,6 +49,9 @@ Use the admin page to:
 - Edit tournament name, course name, leaderboard intro text, players, handicaps, yardage, par, and stroke index
 - Manage tournaments in scoped admin tabs for `Settings`, `Players`, and `Course`
 - Add and remove players per tournament so each event can have its own field
+- Reuse saved course templates when creating a tournament
+- Apply a saved course template to the tournament you are editing
+- Save the current tournament course as a reusable course template
 
 ## Notes
 

@@ -172,6 +172,7 @@ function renderActivePlayer() {
     playerPanelEmpty.textContent = "Choose a player code to see that player’s card, scoring form, and stroke holes.";
     playerPanelTitle.textContent = "No player selected";
     loginForm.classList.remove("hidden");
+    playerSignoutButton.classList.add("hidden");
     return;
   }
 
@@ -187,6 +188,7 @@ function renderActivePlayer() {
   playerPanel.classList.remove("hidden");
   playerPanelEmpty.classList.add("hidden");
   loginForm.classList.add("hidden");
+  playerSignoutButton.classList.remove("hidden");
   playerPanelTitle.textContent = `${player.name}'s scoring`;
   selectedPlayerName.textContent = player.name;
   selectedPlayerMeta.textContent = `${player.hometown} · Code ${player.accessCode} · Thru ${computed.thru}`;

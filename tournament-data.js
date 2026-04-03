@@ -98,6 +98,14 @@
     };
   }
 
+  function createCourseTemplate(name, course) {
+    return {
+      id: makeId("course"),
+      name: name || "Course Template",
+      course: course ? course.map((hole) => ({ ...hole })) : createCourse(),
+    };
+  }
+
   function createDefaultState() {
     const liveTournament = createTournament({
       id: "spring-invitational-live",
@@ -121,6 +129,10 @@
     return {
       adminCode: "pga",
       leaderboardTournamentId: liveTournament.id,
+      courseTemplates: [
+        createCourseTemplate(liveTournament.courseName, liveTournament.course),
+        createCourseTemplate(completedTournament.courseName, completedTournament.course),
+      ],
       tournaments: [liveTournament, completedTournament],
     };
   }
@@ -223,6 +235,16 @@
     return {
       adminCode: state.adminCode || defaults.adminCode,
       leaderboardTournamentId,
+      courseTemplates: Array.isArray(state.courseTemplates) && state.courseTemplates.length
+        ? state.courseTemplates.map((template, index) => ({
+            id: template.id || defaults.courseTemplates[index]?.id || makeId("course"),
+            name: template.name || defaults.courseTemplates[index]?.name || `Course ${index + 1}`,
+            course: normalizeCourse(
+              Array.isArray(template.course) ? template.course : defaults.courseTemplates[index]?.course || createCourse(),
+              defaults.courseTemplates[index]?.course || createCourse(),
+            ),
+          }))
+        : defaults.courseTemplates,
       tournaments,
     };
   }
@@ -259,6 +281,10 @@
 
   function listTournaments(state) {
     return state.tournaments.slice();
+  }
+
+  function listCourseTemplates(state) {
+    return (state.courseTemplates || []).slice();
   }
 
   function strokesOnHole(handicap, strokeIndex) {
@@ -475,15 +501,24 @@
   function createTournamentFromAdmin(state, details) {
     const nextState = normalizeState(state);
     const sourceTournament = getTournament(nextState, details.copyFromTournamentId || nextState.leaderboardTournamentId);
+    const courseTemplate = (nextState.courseTemplates || []).find((template) => template.id === details.courseTemplateId) || null;
     const tournament = createTournament({
       tournamentName: String(details.tournamentName || "").trim() || "New Tournament",
-      courseName: String(details.courseName || "").trim() || sourceTournament?.courseName || "Course Name",
+      courseName:
+        String(details.courseName || "").trim() ||
+        courseTemplate?.name ||
+        sourceTournament?.courseName ||
+        "Course Name",
       leaderboardDescription:
         String(details.leaderboardDescription || "").trim() ||
         sourceTournament?.leaderboardDescription ||
         "This page is built for display screens, staff tablets, or players who just want to follow the rankings as scores come in.",
       status: details.status || "upcoming",
-      course: sourceTournament ? sourceTournament.course.map((hole) => ({ ...hole })) : createCourse(),
+      course: courseTemplate
+        ? courseTemplate.course.map((hole) => ({ ...hole }))
+        : sourceTournament
+          ? sourceTournament.course.map((hole) => ({ ...hole }))
+          : createCourse(),
       players: sourceTournament
         ? sourceTournament.players.map((player, index) => ({
             ...player,
@@ -583,6 +618,37 @@
     return saveState(nextState);
   }
 
+  function applyCourseTemplate(state, tournamentId, templateId) {
+    const nextState = normalizeState(state);
+    const template = (nextState.courseTemplates || []).find((entry) => entry.id === templateId);
+
+    if (!template) {
+      return nextState;
+    }
+
+    return updateTournament(nextState, tournamentId, (tournament) => ({
+      ...tournament,
+      courseName: template.name,
+      course: template.course.map((hole) => ({ ...hole })),
+    }));
+  }
+
+  function saveTournamentCourseAsTemplate(state, tournamentId, templateName) {
+    const nextState = normalizeState(state);
+    const tournament = getTournament(nextState, tournamentId);
+
+    if (!tournament) {
+      return nextState;
+    }
+
+    const name = String(templateName || "").trim() || tournament.courseName;
+    nextState.courseTemplates = [
+      ...nextState.courseTemplates,
+      createCourseTemplate(name, tournament.course),
+    ];
+    return saveState(nextState);
+  }
+
   function deleteTournament(state, tournamentId) {
     const nextState = normalizeState(state);
     const remaining = nextState.tournaments.filter((tournament) => tournament.id !== tournamentId);
@@ -630,6 +696,7 @@
     saveState,
     resetState,
     listTournaments,
+    listCourseTemplates,
     getTournament,
     getLiveTournament,
     resultsTournaments,
@@ -645,6 +712,8 @@
     addPlayer,
     removePlayer,
     clearTournamentScores,
+    applyCourseTemplate,
+    saveTournamentCourseAsTemplate,
     setLeaderboardTournament,
     deleteTournament,
     findPlayerByCode,

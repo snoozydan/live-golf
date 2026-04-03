@@ -17,10 +17,15 @@ const liveTournamentSelect = document.getElementById("live-tournament-select");
 const setLiveButton = document.getElementById("set-live-button");
 const newTournamentNameInput = document.getElementById("new-tournament-name-input");
 const newCourseNameInput = document.getElementById("new-course-name-input");
+const newTournamentCourseTemplateSelect = document.getElementById("new-tournament-course-template-select");
 const createTournamentButton = document.getElementById("create-tournament-button");
 const duplicateTournamentButton = document.getElementById("duplicate-tournament-button");
 const clearScoresButton = document.getElementById("clear-scores-button");
 const deleteTournamentButton = document.getElementById("delete-tournament-button");
+const applyCourseTemplateSelect = document.getElementById("apply-course-template-select");
+const applyCourseTemplateButton = document.getElementById("apply-course-template-button");
+const saveCourseTemplateNameInput = document.getElementById("save-course-template-name-input");
+const saveCourseTemplateButton = document.getElementById("save-course-template-button");
 const workspaceTitle = document.getElementById("workspace-title");
 const workspaceMeta = document.getElementById("workspace-meta");
 const workspacePlayerCount = document.getElementById("workspace-player-count");
@@ -152,6 +157,7 @@ function renderScopedSectionLabels() {
 function renderTournamentManager() {
   const tournaments = TournamentStore.listTournaments(state);
   const liveTournament = TournamentStore.getLiveTournament(state);
+  const courseTemplates = TournamentStore.listCourseTemplates(state);
   const options = tournaments
     .map(
       (tournament) =>
@@ -163,6 +169,13 @@ function renderTournamentManager() {
   liveTournamentSelect.innerHTML = options;
   adminTournamentSelect.value = selectedTournamentId || "";
   liveTournamentSelect.value = liveTournament?.id || "";
+
+  const courseOptions = courseTemplates
+    .map((template) => `<option value="${template.id}">${template.name}</option>`)
+    .join("");
+
+  newTournamentCourseTemplateSelect.innerHTML = `<option value="">Use selected tournament course</option>${courseOptions}`;
+  applyCourseTemplateSelect.innerHTML = `<option value="">Choose a saved course</option>${courseOptions}`;
 }
 
 function renderSettings() {
@@ -376,6 +389,7 @@ createTournamentButton.addEventListener("click", () => {
   state = TournamentStore.createTournamentFromAdmin(state, {
     tournamentName: name || "New Tournament",
     courseName: course || draftSettings.courseName || "Course Name",
+    courseTemplateId: newTournamentCourseTemplateSelect.value || "",
     status: "upcoming",
     copyFromTournamentId: selectedTournamentId,
   });
@@ -383,6 +397,7 @@ createTournamentButton.addEventListener("click", () => {
   selectedTournamentId = TournamentStore.listTournaments(state).slice(-1)[0].id;
   newTournamentNameInput.value = "";
   newCourseNameInput.value = "";
+  newTournamentCourseTemplateSelect.value = "";
   adminLoginMessage.textContent = "New tournament created from the selected setup.";
   rerender(true);
 });
@@ -419,6 +434,32 @@ clearScoresButton.addEventListener("click", () => {
 
   state = TournamentStore.clearTournamentScores(state, selectedTournamentId);
   adminLoginMessage.textContent = "All scores cleared for the selected tournament.";
+  rerender(true);
+});
+
+applyCourseTemplateButton.addEventListener("click", () => {
+  if (!selectedTournamentId || !applyCourseTemplateSelect.value) {
+    adminLoginMessage.textContent = "Choose a saved course first.";
+    return;
+  }
+
+  state = TournamentStore.applyCourseTemplate(state, selectedTournamentId, applyCourseTemplateSelect.value);
+  adminLoginMessage.textContent = "Saved course applied to the selected tournament.";
+  rerender(true);
+});
+
+saveCourseTemplateButton.addEventListener("click", () => {
+  if (!selectedTournamentId) {
+    return;
+  }
+
+  state = TournamentStore.saveTournamentCourseAsTemplate(
+    state,
+    selectedTournamentId,
+    saveCourseTemplateNameInput.value.trim(),
+  );
+  saveCourseTemplateNameInput.value = "";
+  adminLoginMessage.textContent = "Current course saved as a reusable template.";
   rerender(true);
 });
 

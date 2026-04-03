@@ -38,12 +38,6 @@ const addPlayerButton = document.getElementById("add-player-button");
 const playersSectionLabel = document.getElementById("players-section-label");
 const courseSectionLabel = document.getElementById("course-section-label");
 
-const adminEventName = document.getElementById("admin-event-name");
-const adminCourseName = document.getElementById("admin-course-name");
-const adminPlayersCount = document.getElementById("admin-players-count");
-const adminHolesLogged = document.getElementById("admin-holes-logged");
-const adminLeaderNet = document.getElementById("admin-leader-net");
-
 let state = TournamentStore.loadState();
 let adminUnlocked = false;
 const ADMIN_SESSION_KEY = "fairway-live-admin-session-v1";
@@ -113,16 +107,6 @@ function syncDraftsFromState() {
     leaderboardDescription: tournament.leaderboardDescription,
     status: tournament.status,
   };
-}
-
-function renderHeader() {
-  const tournament = selectedTournament();
-  const ranked = TournamentStore.rankedPlayers(tournament);
-  adminEventName.textContent = tournament ? tournament.tournamentName : "No tournament selected";
-  adminCourseName.textContent = tournament ? tournament.courseName : "Choose a tournament below";
-  adminPlayersCount.textContent = tournament ? `${tournament.players.length}` : "0";
-  adminHolesLogged.textContent = tournament ? `${TournamentStore.totalPostedScores(tournament)}` : "0";
-  adminLeaderNet.textContent = ranked[0] ? scoreLabel(ranked[0].netToPar) : "E";
 }
 
 function renderWorkspaceHeader() {
@@ -378,7 +362,6 @@ function rerender(reload) {
   }
 
   renderTournamentManager();
-  renderHeader();
 
   if (!adminUnlocked) {
     adminSignoutButton.classList.add("hidden");

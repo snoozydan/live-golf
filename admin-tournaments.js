@@ -22,42 +22,51 @@ AdminCommon.initAdminPage({
     const courseOptions = courseTemplates.map((template) => `<option value="${template.id}">${template.name}</option>`).join("");
     newTournamentCourseTemplateSelect.innerHTML = `<option value="">Use selected tournament course</option>${courseOptions}`;
 
-    setLiveButton.onclick = () => {
-      const nextState = TournamentStore.setLeaderboardTournament(state, liveTournamentSelect.value);
+    setLiveButton.onclick = async () => {
+      let nextState = TournamentStore.setLeaderboardTournament(state, liveTournamentSelect.value);
+      if (window.AppData?.enabled()) {
+        nextState = await window.AppData.persistState(nextState);
+      }
       replaceState(nextState);
       setMessage("Updated live leaderboard tournament.");
-      rerender(true);
+      await rerender(true);
     };
 
-    createTournamentButton.onclick = () => {
-      const nextState = TournamentStore.createTournamentFromAdmin(state, {
+    createTournamentButton.onclick = async () => {
+      let nextState = TournamentStore.createTournamentFromAdmin(state, {
         tournamentName: newTournamentNameInput.value.trim() || "New Tournament",
         courseName: newCourseNameInput.value.trim() || tournament?.courseName || "Course Name",
         courseTemplateId: newTournamentCourseTemplateSelect.value || "",
         status: "upcoming",
         copyFromTournamentId: selectedTournamentId,
       });
+      if (window.AppData?.enabled()) {
+        nextState = await window.AppData.persistState(nextState);
+      }
       replaceState(nextState);
       newTournamentNameInput.value = "";
       newCourseNameInput.value = "";
       newTournamentCourseTemplateSelect.value = "";
       setMessage("Created new tournament.");
-      rerender(true);
+      await rerender(true);
     };
 
-    duplicateTournamentButton.onclick = () => {
+    duplicateTournamentButton.onclick = async () => {
       if (!selectedTournamentId) return;
-      const nextState = TournamentStore.duplicateTournament(state, selectedTournamentId, {
+      let nextState = TournamentStore.duplicateTournament(state, selectedTournamentId, {
         tournamentName: `${tournament?.tournamentName || "Tournament"} Copy`,
         courseName: tournament?.courseName || "Course Name",
         status: "upcoming",
       });
+      if (window.AppData?.enabled()) {
+        nextState = await window.AppData.persistState(nextState);
+      }
       replaceState(nextState);
       setMessage("Duplicated tournament.");
-      rerender(true);
+      await rerender(true);
     };
 
-    deleteTournamentButton.onclick = () => {
+    deleteTournamentButton.onclick = async () => {
       if (!selectedTournamentId) return;
       if (tournaments.length <= 1) {
         setMessage("At least one tournament must remain.");
@@ -65,10 +74,13 @@ AdminCommon.initAdminPage({
       }
       const confirmed = window.confirm(`Delete ${tournament?.tournamentName || "this tournament"}?`);
       if (!confirmed) return;
-      const nextState = TournamentStore.deleteTournament(state, selectedTournamentId);
+      let nextState = TournamentStore.deleteTournament(state, selectedTournamentId);
+      if (window.AppData?.enabled()) {
+        nextState = await window.AppData.persistState(nextState);
+      }
       replaceState(nextState);
       setMessage("Deleted tournament.");
-      rerender(true);
+      await rerender(true);
     };
   },
 });

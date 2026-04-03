@@ -61,6 +61,13 @@
               <div class="summary-badge"><span class="badge-label">Posted</span><span class="badge-value" id="workspace-posted-count">0</span></div>
             </div>
           </div>
+          <div class="admin-section-switcher">
+            <a class="admin-section-tile active" href="./admin.html">Tournaments</a>
+            <a class="admin-section-tile" href="./admin-players.html">Players</a>
+            <a class="admin-section-tile" href="./admin-groups.html">Groups</a>
+            <a class="admin-section-tile" href="./admin-courses.html">Courses</a>
+            <a class="admin-section-tile" href="./admin-settings.html">Settings</a>
+          </div>
           <nav class="admin-subnav">
             <a class="admin-subnav-link active" href="./admin.html">Tournaments</a>
             <a class="admin-subnav-link" href="./admin-players.html">Players</a>
@@ -136,7 +143,10 @@
       </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./supabase-config.js"></script>
     <script src="./tournament-data.js"></script>
+    <script src="./supabase-sync.js"></script>
     <script src="./admin-common.js"></script>
     <script src="./admin-tournaments.js"></script>
   </body>

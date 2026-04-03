@@ -96,7 +96,7 @@ AdminCommon.initAdminPage({
       setMessage("Unsaved player changes.");
     };
 
-    saveButton.onclick = () => {
+    saveButton.onclick = async () => {
       const seenCodes = new Set();
       for (const player of draftPlayers) {
         const code = String(player.accessCode || "").trim().toUpperCase();
@@ -125,9 +125,12 @@ AdminCommon.initAdminPage({
         nextState = TournamentStore.removePlayer(nextState, selectedTournamentId, player.id);
       });
 
+      if (window.AppData?.enabled()) {
+        nextState = await window.AppData.persistState(nextState);
+      }
       replaceState(nextState);
       setMessage("Saved player changes.");
-      rerender(true);
+      await rerender(true);
     };
 
     renderPlayers();

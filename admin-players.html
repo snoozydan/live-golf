@@ -21,6 +21,13 @@
         <section id="admin-controls-panel" class="panel hidden">
           <div class="panel-heading"><div><p class="panel-kicker">Admin</p><h2>Players</h2></div><button id="save-button" class="primary-button" type="button">Save player changes</button></div>
           <div class="admin-workspace-header"><div><div class="section-subtitle">Active tournament</div><div class="workspace-title" id="workspace-title">Spring Invitational</div><div class="workspace-meta" id="workspace-meta">North Course · Live</div></div><div class="workspace-badges"><div class="summary-badge"><span class="badge-label">Players</span><span class="badge-value" id="workspace-player-count">0</span></div><div class="summary-badge"><span class="badge-label">Posted</span><span class="badge-value" id="workspace-posted-count">0</span></div></div></div>
+          <div class="admin-section-switcher">
+            <a class="admin-section-tile" href="./admin.html">Tournaments</a>
+            <a class="admin-section-tile active" href="./admin-players.html">Players</a>
+            <a class="admin-section-tile" href="./admin-groups.html">Groups</a>
+            <a class="admin-section-tile" href="./admin-courses.html">Courses</a>
+            <a class="admin-section-tile" href="./admin-settings.html">Settings</a>
+          </div>
           <nav class="admin-subnav"><a class="admin-subnav-link" href="./admin.html">Tournaments</a><a class="admin-subnav-link active" href="./admin-players.html">Players</a><a class="admin-subnav-link" href="./admin-groups.html">Groups</a><a class="admin-subnav-link" href="./admin-courses.html">Courses</a><a class="admin-subnav-link" href="./admin-settings.html">Settings</a></nav>
           <div class="admin-settings-card"><div class="section-subtitle">Tournament selector</div><div class="admin-controls admin-controls-settings admin-manager-simple"><label>Editing tournament<select id="selected-tournament-select"></select></label></div></div>
           <div class="admin-settings-card"><div class="section-subtitle">Add player</div><div class="admin-controls admin-controls-settings admin-controls-four"><label>Name<input id="new-player-name-input" type="text" placeholder="Player name" /></label><label>Code<input id="new-player-code-input" type="text" maxlength="8" placeholder="AB12" /></label><label>Flight<input id="new-player-flight-input" type="text" placeholder="Championship Flight" /></label><div class="button-stack"><button id="add-player-button" type="button" class="ghost-button">Add player</button></div></div></div>
@@ -28,6 +35,6 @@
         </section>
       </main>
     </div>
-    <script src="./tournament-data.js"></script><script src="./admin-common.js"></script><script src="./admin-players.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script><script src="./tournament-data.js"></script><script src="./supabase-sync.js"></script><script src="./admin-common.js"></script><script src="./admin-players.js"></script>
   </body>
 </html>

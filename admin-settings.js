@@ -70,14 +70,17 @@ AdminCommon.initAdminPage({
       setMessage("Unsaved settings changes.");
     };
 
-    setLiveButton.onclick = () => {
-      const nextState = TournamentStore.setLeaderboardTournament(TournamentStore.loadState(), liveTournamentSelect.value);
+    setLiveButton.onclick = async () => {
+      let nextState = TournamentStore.setLeaderboardTournament(TournamentStore.loadState(), liveTournamentSelect.value);
+      if (window.AppData?.enabled()) {
+        nextState = await window.AppData.persistState(nextState);
+      }
       replaceState(nextState);
       setMessage("Updated live leaderboard tournament.");
-      rerender(true);
+      await rerender(true);
     };
 
-    saveButton.onclick = () => {
+    saveButton.onclick = async () => {
       let nextState = TournamentStore.loadState();
 
       if (selectedCourseTemplateId) {
@@ -85,20 +88,26 @@ AdminCommon.initAdminPage({
       }
 
       nextState = TournamentStore.updateTournamentSettings(nextState, selectedTournamentId, draftSettings);
+      if (window.AppData?.enabled()) {
+        nextState = await window.AppData.persistState(nextState);
+      }
       replaceState(nextState);
       setMessage("Saved settings changes.");
-      rerender(true);
+      await rerender(true);
     };
 
-    clearScoresButton.onclick = () => {
+    clearScoresButton.onclick = async () => {
       const confirmed = window.confirm(
         `Clear all scores for ${tournament?.tournamentName || "this tournament"}? Players and course settings will stay.`,
       );
       if (!confirmed) return;
-      const nextState = TournamentStore.clearTournamentScores(TournamentStore.loadState(), selectedTournamentId);
+      let nextState = TournamentStore.clearTournamentScores(TournamentStore.loadState(), selectedTournamentId);
+      if (window.AppData?.enabled()) {
+        nextState = await window.AppData.persistState(nextState);
+      }
       replaceState(nextState);
       setMessage("Cleared all scores for selected tournament.");
-      rerender(true);
+      await rerender(true);
     };
   },
 });

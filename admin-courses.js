@@ -82,31 +82,37 @@ AdminCommon.initAdminPage({
       renderCourseList();
     });
 
-    applyCourseTemplateButton.onclick = () => {
+    applyCourseTemplateButton.onclick = async () => {
       if (!applyCourseTemplateSelect.value) {
         setMessage("Choose a saved course first.");
         return;
       }
-      const nextState = TournamentStore.applyCourseTemplate(TournamentStore.loadState(), selectedTournamentId, applyCourseTemplateSelect.value);
+      let nextState = TournamentStore.applyCourseTemplate(TournamentStore.loadState(), selectedTournamentId, applyCourseTemplateSelect.value);
+      if (window.AppData?.enabled()) {
+        nextState = await window.AppData.persistState(nextState);
+      }
       replaceState(nextState);
       draftCourse = TournamentStore.getTournament(nextState, selectedTournamentId)?.course.map((hole) => ({ ...hole })) || [];
       setMessage("Applied course template to selected tournament.");
-      rerender(true);
+      await rerender(true);
     };
 
-    saveCourseTemplateButton.onclick = () => {
-      const nextState = TournamentStore.saveTournamentCourseAsTemplate(
+    saveCourseTemplateButton.onclick = async () => {
+      let nextState = TournamentStore.saveTournamentCourseAsTemplate(
         TournamentStore.loadState(),
         selectedTournamentId,
         saveCourseTemplateNameInput.value.trim(),
       );
+      if (window.AppData?.enabled()) {
+        nextState = await window.AppData.persistState(nextState);
+      }
       replaceState(nextState);
       saveCourseTemplateNameInput.value = "";
       setMessage("Saved current tournament course as template.");
-      rerender(true);
+      await rerender(true);
     };
 
-    saveButton.onclick = () => {
+    saveButton.onclick = async () => {
       let nextState = TournamentStore.loadState();
       if (selectedCourseEditTarget === "tournament") {
         draftCourse.forEach((hole) => {
@@ -120,9 +126,12 @@ AdminCommon.initAdminPage({
           });
         });
       }
+      if (window.AppData?.enabled()) {
+        nextState = await window.AppData.persistState(nextState);
+      }
       replaceState(nextState);
       setMessage("Saved course changes.");
-      rerender(true);
+      await rerender(true);
     };
 
     renderCourseControls();

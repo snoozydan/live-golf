@@ -286,16 +286,18 @@ function renderActiveGroup() {
   renderGroupCards(group, tournament);
 }
 
-function rerender(reload) {
-  if (reload) state = TournamentStore.loadState();
+async function rerender(reload) {
+  if (reload) {
+    state = window.AppData?.enabled() ? await window.AppData.bootstrap() : TournamentStore.loadState();
+  }
   renderHeaderMetrics();
   renderUpdates();
   renderActiveGroup();
 }
 
-loginForm.addEventListener("submit", (event) => {
+loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  state = TournamentStore.loadState();
+  state = window.AppData?.enabled() ? await window.AppData.bootstrap() : TournamentStore.loadState();
   const tournament = currentTournament();
   if (!tournament) return;
 
@@ -311,10 +313,10 @@ loginForm.addEventListener("submit", (event) => {
   activeGroupId = group.id;
   saveActiveGroupSession(group.id);
   loginMessage.textContent = `${group.name} is now unlocked for score entry.`;
-  rerender(false);
+  await rerender(false);
 });
 
-playerScoreForm.addEventListener("submit", (event) => {
+playerScoreForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
@@ -334,45 +336,48 @@ playerScoreForm.addEventListener("submit", (event) => {
   });
 
   state = nextState;
+  if (window.AppData?.enabled()) {
+    state = await window.AppData.persistState(state);
+  }
   loginMessage.textContent = "Group scores posted successfully.";
-  rerender(true);
+  await rerender(true);
 });
 
-playerHoleSelect.addEventListener("change", () => {
+playerHoleSelect.addEventListener("change", async () => {
   selectedHoleNumber = Number(playerHoleSelect.value);
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
-  renderActiveGroup();
+  await rerender(false);
 });
 
-previousHoleButton.addEventListener("click", () => {
+previousHoleButton.addEventListener("click", async () => {
   const current = selectedHoleNumber;
   if (current <= 1) return;
   selectedHoleNumber = current - 1;
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
-  renderActiveGroup();
+  await rerender(false);
 });
 
-nextHoleButton.addEventListener("click", () => {
+nextHoleButton.addEventListener("click", async () => {
   const current = selectedHoleNumber;
   if (current >= 18) return;
   selectedHoleNumber = current + 1;
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
-  renderActiveGroup();
+  await rerender(false);
 });
 
-playerSignoutButton.addEventListener("click", () => {
+playerSignoutButton.addEventListener("click", async () => {
   activeGroupId = null;
   selectedHoleNumber = 1;
   saveActiveGroupSession(null);
   playerCodeInput.value = "";
   loginMessage.textContent = "Group signed out on this device.";
-  rerender(false);
+  await rerender(false);
 });
 
 window.addEventListener("storage", () => {
@@ -386,5 +391,21 @@ window.addEventListener("storage", () => {
   rerender(false);
 });
 
-restoreActiveGroupSession();
-rerender(false);
+window.AppData?.subscribe(async () => {
+  const previousTournamentId = currentTournament()?.id;
+  state = await window.AppData.bootstrap();
+  const nextTournamentId = currentTournament()?.id;
+  if (previousTournamentId !== nextTournamentId) {
+    activeGroupId = null;
+    restoreActiveGroupSession();
+  }
+  await rerender(false);
+});
+
+(async () => {
+  if (window.AppData?.enabled()) {
+    state = await window.AppData.bootstrap();
+  }
+  restoreActiveGroupSession();
+  await rerender(false);
+})();

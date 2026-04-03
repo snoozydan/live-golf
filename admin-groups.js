@@ -68,7 +68,7 @@ AdminCommon.initAdminPage({
       });
     }
 
-    saveButton.onclick = () => {
+    saveButton.onclick = async () => {
       const seen = new Set();
       for (const group of draftGroups) {
         const code = String(group.scorerCode || "").trim().toUpperCase();
@@ -78,10 +78,13 @@ AdminCommon.initAdminPage({
         }
         seen.add(code);
       }
-      const nextState = TournamentStore.updateTournamentGroups(TournamentStore.loadState(), selectedTournamentId, draftGroups);
+      let nextState = TournamentStore.updateTournamentGroups(TournamentStore.loadState(), selectedTournamentId, draftGroups);
+      if (window.AppData?.enabled()) {
+        nextState = await window.AppData.persistState(nextState);
+      }
       replaceState(nextState);
       setMessage("Saved group changes.");
-      rerender(true);
+      await rerender(true);
     };
 
     renderGroups();

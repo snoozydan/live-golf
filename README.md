@@ -55,6 +55,17 @@ Use the admin page to:
 
 ## Notes
 
-- Data is stored in browser `localStorage`
-- Player sign-in stays on the device/browser they used
-- The current app is still a static local MVP, so player/admin codes are convenience gates rather than secure authentication
+- The app still keeps a browser-local fallback copy of tournament data
+- If [supabase-config.js](/Users/danielyoo/Documents/Playground/supabase-config.js) is present, the scoring page, leaderboard, and admin pages now sync through Supabase
+- Player and admin sign-in still stay on the device/browser they used
+- The current app is still a frontend MVP, so player/admin codes are convenience gates rather than secure authentication
+
+## Supabase Prep
+
+If you want real shared sync across desktop and mobile:
+
+1. Open [SUPABASE_SETUP.md](/Users/danielyoo/Documents/Playground/SUPABASE_SETUP.md)
+2. Create `supabase-config.js` from [supabase-config.example.js](/Users/danielyoo/Documents/Playground/supabase-config.example.js)
+3. Run [supabase-schema.sql](/Users/danielyoo/Documents/Playground/supabase-schema.sql) in the Supabase SQL editor
+4. Run locally or deploy to Vercel
+5. The scoring page, leaderboard, and admin pages will sync through Supabase

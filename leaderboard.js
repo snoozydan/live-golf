@@ -22,8 +22,8 @@ function scoreTone(value) {
   return "score-even";
 }
 
-function renderLeaderboardPage() {
-  const state = TournamentStore.loadState();
+async function renderLeaderboardPage() {
+  const state = window.AppData?.enabled() ? await window.AppData.bootstrap() : TournamentStore.loadState();
   const tournament = TournamentStore.getLiveTournament(state);
   const ranked = TournamentStore.rankedPlayers(tournament);
 
@@ -158,5 +158,6 @@ function renderLeaderboardPage() {
 
 window.addEventListener("storage", renderLeaderboardPage);
 window.setInterval(renderLeaderboardPage, 5000);
+window.AppData?.subscribe(renderLeaderboardPage);
 
 renderLeaderboardPage();

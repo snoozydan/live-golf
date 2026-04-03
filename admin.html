@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fairway Live Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Newsreader:opsz,wght@6..72,500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Fairway Live</p>
+          <h1>Admin control</h1>
+        </div>
+        <nav class="topbar-nav">
+          <a class="nav-link" href="./index.html">Scoring</a>
+          <a class="nav-link" href="./leaderboard.html">Leaderboard</a>
+          <a class="nav-link" href="./results.html">Results</a>
+          <a class="nav-link active" href="./admin.html">Admin</a>
+        </nav>
+      </header>
+
+      <section class="hero hero-control">
+        <div class="hero-copy">
+          <p class="eyebrow">Protected Admin</p>
+          <h2 id="admin-event-name">Spring Invitational</h2>
+          <p class="hero-course" id="admin-course-name">North Course</p>
+          <p class="hero-text">
+            Use the admin access code to manage player handicaps, hole settings,
+            and reset the tournament seed data.
+          </p>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">Admin Snapshot</p>
+          <div class="hero-card-stats">
+            <div>
+              <span class="stat-number" id="admin-players-count">0</span>
+              <span class="stat-label">Players</span>
+            </div>
+            <div>
+              <span class="stat-number" id="admin-holes-logged">0</span>
+              <span class="stat-label">Scores Posted</span>
+            </div>
+            <div>
+              <span class="stat-number" id="admin-leader-net">E</span>
+              <span class="stat-label">Leading Net</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main class="dashboard-grid single-column">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Access</p>
+              <h2>Unlock admin controls</h2>
+            </div>
+            <button id="admin-signout-button" class="ghost-button hidden" type="button">Sign out</button>
+          </div>
+          <form id="admin-login-form" class="stack-form admin-login-form">
+            <label>
+              Admin code
+              <input
+                id="admin-code-input"
+                type="password"
+                autocomplete="off"
+                placeholder="Enter admin code"
+                required
+              />
+            </label>
+            <button type="submit" class="primary-button">Unlock admin</button>
+          </form>
+          <div id="admin-login-message" class="info-card muted-card">
+            Admin settings stay hidden until the correct access code is entered.
+          </div>
+        </section>
+
+        <section id="admin-controls-panel" class="panel panel-wide hidden">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Admin</p>
+              <h2>Tournament workspace</h2>
+            </div>
+            <div class="admin-actions">
+              <button id="save-button" class="primary-button" type="button">Save admin changes</button>
+              <button id="reset-button" class="ghost-button" type="button">Reset to seed data</button>
+            </div>
+          </div>
+          <div class="admin-workspace-header">
+            <div>
+              <div class="section-subtitle">Active tournament</div>
+              <div class="workspace-title" id="workspace-title">Spring Invitational</div>
+              <div class="workspace-meta" id="workspace-meta">North Course · Live</div>
+            </div>
+            <div class="workspace-badges">
+              <div class="summary-badge">
+                <span class="badge-label">Players</span>
+                <span class="badge-value" id="workspace-player-count">0</span>
+              </div>
+              <div class="summary-badge">
+                <span class="badge-label">Posted</span>
+                <span class="badge-value" id="workspace-posted-count">0</span>
+              </div>
+            </div>
+          </div>
+          <div id="admin-manager-panel" class="admin-settings-card">
+            <div class="section-subtitle">Tournament manager</div>
+            <div class="manager-card">
+              <div class="manager-title">1. Choose tournament</div>
+              <div class="manager-help">Everything below edits only this tournament’s players, settings, and course.</div>
+              <div class="admin-controls admin-controls-settings admin-manager-simple">
+                <label>
+                  Editing tournament
+                  <select id="admin-tournament-select"></select>
+                </label>
+              </div>
+            </div>
+            <div class="manager-card">
+              <div class="manager-title">2. Live leaderboard</div>
+              <div class="manager-help">Use this when you want the public leaderboard page to show the selected tournament.</div>
+              <div class="admin-controls admin-controls-settings admin-manager-simple">
+                <label>
+                  Current live leaderboard
+                  <input id="live-tournament-display" type="text" readonly />
+                </label>
+                <div class="button-stack">
+                  <button id="set-live-button" type="button" class="primary-button">Make selected tournament live</button>
+                </div>
+              </div>
+            </div>
+            <div class="manager-card">
+              <div class="manager-title">3. Add tournament</div>
+              <div class="manager-help">Creates a new tournament using the selected tournament as the starting template.</div>
+              <div class="admin-controls admin-controls-settings admin-controls-three admin-manager-grid">
+                <label>
+                  New tournament name
+                  <input id="new-tournament-name-input" type="text" placeholder="Club Championship" />
+                </label>
+                <label>
+                  New course name
+                  <input id="new-course-name-input" type="text" placeholder="South Course" />
+                </label>
+                <div class="button-stack">
+                  <button id="create-tournament-button" type="button" class="ghost-button">Create new tournament</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="admin-tab-bar">
+            <button id="tab-settings" class="admin-tab active" type="button" data-tab="settings">Settings</button>
+            <button id="tab-players" class="admin-tab" type="button" data-tab="players">Players</button>
+            <button id="tab-course" class="admin-tab" type="button" data-tab="course">Course</button>
+          </div>
+
+          <div id="admin-tab-settings-panel" class="admin-tab-panel">
+            <div class="admin-settings-card">
+              <div class="section-subtitle">Tournament settings</div>
+              <div class="admin-controls admin-controls-settings">
+                <label>
+                  Tournament name
+                  <input id="tournament-name-input" type="text" />
+                </label>
+                <label>
+                  Course name
+                  <input id="course-name-input" type="text" />
+                </label>
+                <label>
+                  Tournament status
+                  <select id="tournament-status-input">
+                    <option value="live">Live</option>
+                    <option value="upcoming">Upcoming</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </label>
+              </div>
+              <label class="admin-settings-textarea">
+                Leaderboard intro text
+                <textarea id="leaderboard-description-input" rows="3"></textarea>
+              </label>
+            </div>
+            <div class="admin-settings-card">
+              <div class="section-subtitle">More actions</div>
+              <div class="admin-controls admin-controls-settings admin-controls-three admin-manager-grid">
+                <div>
+                  <div class="manager-title">Duplicate tournament</div>
+                  <div class="manager-help">Create a copy of the selected tournament with the same players and course setup.</div>
+                </div>
+                <div></div>
+                <div class="button-stack">
+                  <button id="duplicate-tournament-button" type="button" class="ghost-button">Duplicate selected tournament</button>
+                </div>
+              </div>
+              <div class="admin-controls admin-controls-settings admin-controls-three admin-manager-grid">
+                <div>
+                  <div class="manager-title">Delete tournament</div>
+                  <div class="manager-help">Remove the selected tournament from this browser. Use this only if you no longer need it.</div>
+                </div>
+                <div></div>
+                <div class="button-stack">
+                  <button id="delete-tournament-button" type="button" class="danger-button">Delete selected tournament</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="admin-tab-players-panel" class="admin-tab-panel hidden">
+            <div class="admin-settings-card">
+              <div class="section-subtitle">Add player</div>
+              <div class="admin-controls admin-controls-settings admin-controls-four">
+                <label>
+                  Name
+                  <input id="new-player-name-input" type="text" placeholder="Player name" />
+                </label>
+                <label>
+                  Code
+                  <input id="new-player-code-input" type="text" maxlength="8" placeholder="AB12" />
+                </label>
+                <label>
+                  Flight
+                  <input id="new-player-flight-input" type="text" placeholder="Championship Flight" />
+                </label>
+                <div class="button-stack">
+                  <button id="add-player-button" type="button" class="ghost-button">Add player</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="section-subtitle" id="players-section-label">Players</div>
+              <div id="admin-player-list" class="admin-list"></div>
+            </div>
+          </div>
+
+          <div id="admin-tab-course-panel" class="admin-tab-panel hidden">
+            <div>
+              <div class="section-subtitle" id="course-section-label">Course holes</div>
+              <div id="admin-course-list" class="admin-list"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./tournament-data.js"></script>
+    <script src="./admin.js"></script>
+  </body>
+</html>

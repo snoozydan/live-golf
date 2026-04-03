@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fairway Live Results</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Newsreader:opsz,wght@6..72,500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Fairway Live</p>
+          <h1>Tournament results archive</h1>
+        </div>
+        <nav class="topbar-nav">
+          <a class="nav-link" href="./index.html">Scoring</a>
+          <a class="nav-link" href="./leaderboard.html">Leaderboard</a>
+          <a class="nav-link active" href="./results.html">Results</a>
+          <a class="nav-link" href="./admin.html">Admin</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Past Events</p>
+          <h2>Completed tournament results</h2>
+          <p class="hero-text">
+            The live leaderboard stays focused on the current event, while this page keeps
+            finished tournaments available for players and spectators to review.
+          </p>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">Archive Snapshot</p>
+          <div class="hero-card-stats">
+            <div>
+              <span class="stat-number" id="results-count">0</span>
+              <span class="stat-label">Completed Events</span>
+            </div>
+            <div>
+              <span class="stat-number" id="results-live-name">-</span>
+              <span class="stat-label">Live Event</span>
+            </div>
+            <div>
+              <span class="stat-number" id="results-live-course">-</span>
+              <span class="stat-label">Live Course</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main class="dashboard-grid single-column">
+        <section class="panel panel-wide">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Results</p>
+              <h2>Completed tournaments</h2>
+            </div>
+          </div>
+          <div id="results-list" class="results-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./tournament-data.js"></script>
+    <script src="./results.js"></script>
+  </body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fairway Live Leaderboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Newsreader:opsz,wght@6..72,500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Fairway Live</p>
+          <h1>Dedicated leaderboard view</h1>
+        </div>
+        <nav class="topbar-nav">
+          <a class="nav-link" href="./index.html">Scoring</a>
+          <a class="nav-link active" href="./leaderboard.html">Leaderboard</a>
+          <a class="nav-link" href="./results.html">Results</a>
+          <a class="nav-link" href="./admin.html">Admin</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Leaderboard Only</p>
+          <h2 id="leaderboard-event-name">Spring Invitational</h2>
+          <p class="hero-course" id="leaderboard-course-name">North Course</p>
+          <p class="hero-text" id="leaderboard-description">
+            This page is built for display screens, staff tablets, or players who just
+            want to follow the rankings as scores come in.
+          </p>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">Live Standings</p>
+          <div class="hero-card-stats">
+            <div>
+              <span class="stat-number" id="leaderboard-players-count">0</span>
+              <span class="stat-label">Players</span>
+            </div>
+            <div>
+              <span class="stat-number" id="leaderboard-total-posted">0</span>
+              <span class="stat-label">Scores Posted</span>
+            </div>
+            <div>
+              <span class="stat-number" id="leaderboard-top-score">E</span>
+              <span class="stat-label">Top Net</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main class="dashboard-grid single-column">
+        <section class="panel panel-wide">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Net Leaderboard</p>
+              <h2>Ranking players during the tournament</h2>
+            </div>
+          </div>
+          <div id="leaderboard-list" class="leaderboard"></div>
+        </section>
+
+        <section class="panel panel-wide">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Stroke Hole Guide</p>
+              <h2>Where each player receives strokes</h2>
+            </div>
+          </div>
+          <div id="leaderboard-player-cards" class="player-cards"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./tournament-data.js"></script>
+    <script src="./leaderboard.js"></script>
+  </body>
+</html>

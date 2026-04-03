@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fairway Live Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Newsreader:opsz,wght@6..72,500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Fairway Live</p>
+          <h1>Player scoring</h1>
+        </div>
+        <nav class="topbar-nav">
+          <a class="nav-link active" href="./index.html">Scoring</a>
+          <a class="nav-link" href="./leaderboard.html">Leaderboard</a>
+          <a class="nav-link" href="./results.html">Results</a>
+          <a class="nav-link" href="./admin.html">Admin</a>
+        </nav>
+      </header>
+
+      <section class="hero hero-control">
+        <div class="hero-copy">
+          <p class="eyebrow">Live Tournament</p>
+          <h2 id="event-name">Spring Invitational</h2>
+          <p class="hero-course" id="course-name">North Course</p>
+          <p class="hero-text">
+            Players sign in with their own short code, enter scores hole by hole,
+            and the handicap-aware leaderboard updates on a separate leaderboard page.
+          </p>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">Tournament Snapshot</p>
+          <div class="hero-card-stats">
+            <div>
+              <span class="stat-number" id="players-count">0</span>
+              <span class="stat-label">Players</span>
+            </div>
+            <div>
+              <span class="stat-number" id="holes-logged">0</span>
+              <span class="stat-label">Scores Posted</span>
+            </div>
+            <div>
+              <span class="stat-number" id="leader-net">E</span>
+              <span class="stat-label">Leading Net</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main class="dashboard-grid">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Player Sign In</p>
+              <h2>Use your player code</h2>
+            </div>
+          </div>
+          <form id="login-form" class="stack-form">
+            <label>
+              Player code
+              <input
+                id="player-code-input"
+                type="text"
+                maxlength="8"
+                autocomplete="off"
+                placeholder="Example: AB12"
+                required
+              />
+            </label>
+            <button type="submit" class="primary-button">Open player scoring</button>
+          </form>
+          <div id="login-message" class="info-card muted-card">
+            Enter a player’s short code to unlock only that player’s score entry.
+          </div>
+        </section>
+
+        <section class="panel panel-wide">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Player Scoring</p>
+              <h2 id="player-panel-title">No player selected</h2>
+            </div>
+          </div>
+          <div id="player-panel-empty" class="empty-state">
+            Choose a player code to see that player’s card, scoring form, and stroke holes.
+          </div>
+          <div id="player-panel" class="player-panel hidden">
+            <div class="player-summary">
+              <div>
+                <div class="summary-name" id="selected-player-name"></div>
+                <div class="summary-meta" id="selected-player-meta"></div>
+              </div>
+              <div class="summary-badges">
+                <div class="summary-badge">
+                  <span class="badge-label">Handicap</span>
+                  <span class="badge-value" id="selected-player-handicap">0</span>
+                </div>
+                <div class="summary-badge">
+                  <span class="badge-label">Net</span>
+                  <span class="badge-value" id="selected-player-net">E</span>
+                </div>
+              </div>
+            </div>
+            <div class="player-session-actions">
+              <button id="player-signout-button" class="ghost-button" type="button">Sign out</button>
+            </div>
+
+            <form id="player-score-form" class="score-entry-form">
+              <label>
+                Hole
+                <select id="player-hole-select"></select>
+              </label>
+              <label>
+                Strokes
+                <input id="player-strokes-input" type="number" min="1" max="15" required />
+              </label>
+              <button type="submit" class="primary-button">Post score</button>
+            </form>
+
+            <div>
+              <div class="section-subtitle">Stroke holes for this player</div>
+              <div id="stroke-hole-grid" class="stroke-hole-grid"></div>
+            </div>
+
+            <div>
+              <div class="section-subtitle">18-hole scorecard</div>
+              <div id="player-scorecard" class="scorecard-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-wide">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Recent Updates</p>
+              <h2>Latest submitted scores</h2>
+            </div>
+          </div>
+          <div id="updates-feed" class="updates-feed"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./tournament-data.js"></script>
+    <script src="./main.js"></script>
+  </body>
+</html>

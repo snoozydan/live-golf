@@ -92,9 +92,12 @@ select {
 
 .admin-subnav {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
   margin-bottom: 18px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
 }
 
 .admin-subnav-link {
@@ -105,11 +108,20 @@ select {
   background: rgba(13, 107, 69, 0.08);
   font-weight: 700;
   font-size: 0.92rem;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .admin-subnav-link.active {
   background: var(--accent);
   color: white;
+}
+
+.admin-shortcut-link {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
 }
 
 .nav-link {

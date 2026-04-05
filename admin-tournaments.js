@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ state, tournament, selectedTournamentId, rerender, setMessage, replaceState }) {
+  renderContent({ state, tournament, selectedTournamentId, rerender, setMessage, replaceState, setDirty }) {
     const liveTournamentSelect = document.getElementById("live-tournament-select");
     const newTournamentNameInput = document.getElementById("new-tournament-name-input");
     const newCourseNameInput = document.getElementById("new-course-name-input");
@@ -47,6 +47,7 @@ AdminCommon.initAdminPage({
       newTournamentNameInput.value = "";
       newCourseNameInput.value = "";
       newTournamentCourseTemplateSelect.value = "";
+      setDirty(false);
       setMessage("Created new tournament.");
       await rerender(true);
     };

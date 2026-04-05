@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ state, tournament, selectedTournamentId, rerender, setMessage, replaceState }) {
+  renderContent({ state, tournament, selectedTournamentId, rerender, setMessage, replaceState, setDirty }) {
     const courseEditTargetSelect = document.getElementById("course-edit-target-select");
     const courseList = document.getElementById("admin-course-list");
     const courseSectionLabel = document.getElementById("course-section-label");
@@ -71,12 +71,16 @@ AdminCommon.initAdminPage({
           hole.par = form.querySelector('input[name="par"]').value;
           hole.strokeIndex = form.querySelector('input[name="strokeIndex"]').value;
           hole.yardage = form.querySelector('input[name="yardage"]').value;
+          setDirty(true);
           setMessage("Unsaved course changes.");
         });
       });
     }
 
     courseEditTargetSelect.addEventListener("change", () => {
+      if (selectedCourseEditTarget !== courseEditTargetSelect.value) {
+        setDirty(false);
+      }
       selectedCourseEditTarget = courseEditTargetSelect.value;
       renderCourseControls();
       renderCourseList();

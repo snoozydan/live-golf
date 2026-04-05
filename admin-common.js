@@ -33,6 +33,7 @@
     let state = TournamentStore.loadState();
     let adminUnlocked = window.localStorage.getItem(ADMIN_SESSION_KEY) === "unlocked";
     let selectedTournamentId = getSelectedTournamentId(state);
+    let hasUnsavedChanges = false;
 
     function currentTournament() {
       return TournamentStore.getTournament(state, selectedTournamentId);
@@ -50,6 +51,18 @@
         return;
       }
       window.localStorage.removeItem(ADMIN_SESSION_KEY);
+    }
+
+    function setDirty(value) {
+      hasUnsavedChanges = Boolean(value);
+    }
+
+    function confirmDiscardChanges() {
+      if (!hasUnsavedChanges) {
+        return true;
+      }
+
+      return window.confirm("You have unsaved admin changes. Leave this screen without saving?");
     }
 
     function renderWorkspace() {
@@ -79,8 +92,15 @@
     }
 
     function setSelectedTournament(id) {
+      if (!confirmDiscardChanges()) {
+        if (selectedTournamentSelect) {
+          selectedTournamentSelect.value = selectedTournamentId || "";
+        }
+        return;
+      }
       selectedTournamentId = id;
       setSelectedTournamentId(id);
+      setDirty(false);
       rerender(false);
     }
 
@@ -112,8 +132,10 @@
         setSelectedTournament,
         rerender,
         setMessage,
+        setDirty,
         replaceState(nextState) {
           state = nextState;
+          setDirty(false);
         },
       });
     }
@@ -148,6 +170,24 @@
     selectedTournamentSelect?.addEventListener("change", () => {
       setSelectedTournament(selectedTournamentSelect.value);
       setMessage("Switched editing tournament.");
+    });
+
+    document.querySelectorAll(".admin-subnav a, .admin-section-switcher a").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        if (confirmDiscardChanges()) {
+          return;
+        }
+        event.preventDefault();
+      });
+    });
+
+    window.addEventListener("beforeunload", (event) => {
+      if (!hasUnsavedChanges) {
+        return;
+      }
+
+      event.preventDefault();
+      event.returnValue = "";
     });
 
     window.addEventListener("storage", () => {

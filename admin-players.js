@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ state, tournament, selectedTournamentId, rerender, setMessage, replaceState }) {
+  renderContent({ state, tournament, selectedTournamentId, rerender, setMessage, replaceState, setDirty }) {
     const newPlayerNameInput = document.getElementById("new-player-name-input");
     const newPlayerCodeInput = document.getElementById("new-player-code-input");
     const newPlayerFlightInput = document.getElementById("new-player-flight-input");
@@ -79,6 +79,7 @@ AdminCommon.initAdminPage({
           player.division = form.querySelector('input[name="division"]').value;
           player.teeTime = form.querySelector('input[name="teeTime"]').value;
           player.handicap = form.querySelector('input[name="handicap"]').value;
+          setDirty(true);
           setMessage("Unsaved player changes.");
         });
       });
@@ -88,6 +89,7 @@ AdminCommon.initAdminPage({
           const playerId = button.getAttribute("data-remove-player");
           draftPlayers = draftPlayers.filter((player) => player.id !== playerId);
           renderPlayers();
+          setDirty(true);
           setMessage("Unsaved player changes.");
         });
       });
@@ -115,6 +117,7 @@ AdminCommon.initAdminPage({
       newPlayerCodeInput.value = "";
       newPlayerFlightInput.value = "";
       renderPlayers();
+      setDirty(true);
       setMessage("Unsaved player changes.");
     };
 
@@ -132,6 +135,7 @@ AdminCommon.initAdminPage({
         }
         draftPlayers = nextPlayers;
         renderPlayers();
+        setDirty(true);
         setMessage("Added blank player rows for this tournament.");
         return;
       }
@@ -147,6 +151,7 @@ AdminCommon.initAdminPage({
 
       draftPlayers = draftPlayers.slice(0, requestedCount);
       renderPlayers();
+      setDirty(true);
       setMessage("Reduced the player list for this tournament.");
     };
 

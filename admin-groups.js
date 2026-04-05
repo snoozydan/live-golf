@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ tournament, selectedTournamentId, rerender, setMessage, replaceState }) {
+  renderContent({ tournament, selectedTournamentId, rerender, setMessage, replaceState, setDirty }) {
     const saveButton = document.getElementById("save-button");
     const groupList = document.getElementById("admin-group-list");
     const players = tournament?.players || [];
@@ -63,6 +63,7 @@ AdminCommon.initAdminPage({
             .fill("")
             .map((_, index) => form.querySelector(`select[name="player-${index}"]`).value)
             .filter(Boolean);
+          setDirty(true);
           setMessage("Unsaved group changes.");
         });
       });

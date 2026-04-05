@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ state, tournament, selectedTournamentId, rerender, setMessage, replaceState }) {
+  renderContent({ state, tournament, selectedTournamentId, rerender, setMessage, replaceState, setDirty }) {
     const tournamentNameInput = document.getElementById("tournament-name-input");
     const courseTemplateSelect = document.getElementById("course-template-select");
     const courseNameInput = document.getElementById("course-name-input");
@@ -39,15 +39,18 @@ AdminCommon.initAdminPage({
 
     tournamentNameInput.oninput = () => {
       draftSettings.tournamentName = tournamentNameInput.value;
+      setDirty(true);
       setMessage("Unsaved settings changes.");
     };
     courseNameInput.oninput = () => {
       draftSettings.courseName = courseNameInput.value;
+      setDirty(true);
       setMessage("Unsaved settings changes.");
     };
     courseTemplateSelect.onchange = () => {
       selectedCourseTemplateId = courseTemplateSelect.value;
       if (!selectedCourseTemplateId) {
+        setDirty(true);
         setMessage("Using the current tournament course.");
         return;
       }
@@ -59,14 +62,17 @@ AdminCommon.initAdminPage({
 
       draftSettings.courseName = selectedTemplate.name;
       courseNameInput.value = selectedTemplate.name;
+      setDirty(true);
       setMessage("Selected saved course for this tournament.");
     };
     tournamentStatusInput.onchange = () => {
       draftSettings.status = tournamentStatusInput.value;
+      setDirty(true);
       setMessage("Unsaved settings changes.");
     };
     leaderboardDescriptionInput.oninput = () => {
       draftSettings.leaderboardDescription = leaderboardDescriptionInput.value;
+      setDirty(true);
       setMessage("Unsaved settings changes.");
     };
 

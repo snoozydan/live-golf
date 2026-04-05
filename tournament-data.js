@@ -675,6 +675,37 @@
     });
   }
 
+  function replaceTournamentPlayers(state, tournamentId, players) {
+    return updateTournament(state, tournamentId, (tournament) => {
+      const normalizedPlayers = normalizePlayers(
+        players.map((player, index) => ({
+          ...player,
+          id: player.id || makeId(`player${index + 1}`),
+          name: String(player.name || "").trim() || `Player ${index + 1}`,
+          hometown: String(player.hometown || "").trim() || "",
+          division: String(player.division || "").trim() || "Championship Flight",
+          teeTime: String(player.teeTime || "").trim() || "",
+          accessCode: String(player.accessCode || "").trim().toUpperCase() || `P${index + 1}`,
+          handicap: Math.max(0, Number(player.handicap) || 0),
+          scores: Array.isArray(player.scores) ? player.scores : new Array(18).fill(null),
+        })),
+        tournament.players,
+      );
+
+      const playerIds = new Set(normalizedPlayers.map((player) => player.id));
+
+      return {
+        ...tournament,
+        players: normalizedPlayers,
+        groups: tournament.groups.map((group) => ({
+          ...group,
+          playerIds: group.playerIds.filter((id) => playerIds.has(id)),
+        })),
+        updates: tournament.updates.filter((update) => playerIds.has(update.playerId)),
+      };
+    });
+  }
+
   function removePlayer(state, tournamentId, playerId) {
     return updateTournament(state, tournamentId, (tournament) => ({
       ...tournament,
@@ -833,6 +864,7 @@
     createTournamentFromAdmin,
     duplicateTournament,
     addPlayer,
+    replaceTournamentPlayers,
     removePlayer,
     clearTournamentScores,
     applyCourseTemplate,

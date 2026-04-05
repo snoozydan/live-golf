@@ -166,30 +166,25 @@ AdminCommon.initAdminPage({
         seenCodes.add(code);
       }
 
-      let nextState = TournamentStore.loadState();
-      const latestTournament = TournamentStore.getTournament(nextState, selectedTournamentId);
-      const existingIds = new Set((latestTournament?.players || []).map((player) => player.id));
-      const draftIds = new Set(draftPlayers.map((player) => player.id));
+      try {
+        let nextState = TournamentStore.replaceTournamentPlayers(
+          TournamentStore.loadState(),
+          selectedTournamentId,
+          draftPlayers,
+        );
 
-      draftPlayers.filter((player) => existingIds.has(player.id)).forEach((player) => {
-        nextState = TournamentStore.updatePlayerDetails(nextState, selectedTournamentId, player.id, player);
-        nextState = TournamentStore.updatePlayerHandicap(nextState, selectedTournamentId, player.id, player.handicap);
-      });
+        if (window.AppData?.enabled()) {
+          nextState = await window.AppData.persistState(nextState);
+        }
 
-      draftPlayers.filter((player) => !existingIds.has(player.id)).forEach((player) => {
-        nextState = TournamentStore.addPlayer(nextState, selectedTournamentId, player);
-      });
-
-      (latestTournament?.players || []).filter((player) => !draftIds.has(player.id)).forEach((player) => {
-        nextState = TournamentStore.removePlayer(nextState, selectedTournamentId, player.id);
-      });
-
-      if (window.AppData?.enabled()) {
-        nextState = await window.AppData.persistState(nextState);
+        replaceState(nextState);
+        setDirty(false);
+        setMessage("Saved player changes.");
+        await rerender(true);
+      } catch (error) {
+        console.error("Player save failed", error);
+        setMessage("Could not save player changes. Please try again.");
       }
-      replaceState(nextState);
-      setMessage("Saved player changes.");
-      await rerender(true);
     };
 
     renderPlayers();

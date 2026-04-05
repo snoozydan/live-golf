@@ -39,6 +39,12 @@ function playerStatus(player) {
   return `On ${Math.min(18, player.completed + 1)}`;
 }
 
+function playerMetaText(player, groupLabel) {
+  const statusText = playerStatus(player);
+  const teeOrStatus = player.completed === 0 ? `Tee ${player.teeTime || "-"}` : statusText;
+  return `${groupLabel || "No group"} · HCP ${player.handicap} · ${teeOrStatus}`;
+}
+
 function grossResultLabel(delta) {
   if (delta <= -2) return "Eagle";
   if (delta === -1) return "Birdie";
@@ -116,6 +122,7 @@ async function renderLeaderboardPage() {
         const grossDisplay = player.completed === 0 ? "-" : scoreLabel(player.grossToPar);
         const statusText = playerStatus(player);
         const movement = movementMarkup(player, index, previousPositions);
+        const metaText = playerMetaText(player, playerGroupMap.get(player.id));
         return `
         <article class="leaderboard-entry">
           <div class="leaderboard-row">
@@ -125,7 +132,7 @@ async function renderLeaderboardPage() {
                 <span class="player-name">${player.name}</span>
               </button>
               <div class="player-meta-row">
-                <div class="player-meta">${playerGroupMap.get(player.id) || "No group"} · HCP ${player.handicap} · ${statusText}</div>
+                <div class="player-meta">${metaText}</div>
                 ${movement}
               </div>
             </div>
@@ -160,7 +167,7 @@ async function renderLeaderboardPage() {
             <div class="leaderboard-detail">
               <div class="leaderboard-detail-summary">
                 <div class="detail-pill">Status ${statusText}</div>
-                <div class="detail-pill">Tee ${player.teeTime || "-"}</div>
+                ${player.completed === 0 ? `<div class="detail-pill">Tee ${player.teeTime || "-"}</div>` : ""}
                 <div class="detail-pill">Gross ${scoreLabel(player.grossToPar)}</div>
                 <div class="detail-pill">Net ${scoreLabel(player.netToPar)}</div>
                 <div class="detail-pill">Total Gross ${player.gross || "-"}</div>
@@ -213,7 +220,7 @@ async function renderLeaderboardPage() {
           <div class="player-card-header">
             <div>
               <h3>${player.name}</h3>
-              <div class="card-subline">${playerGroupMap.get(player.id) || "No group"} · Tee ${player.teeTime || "-"} · ${playerStatus(player)}</div>
+              <div class="card-subline">${player.completed === 0 ? `${playerGroupMap.get(player.id) || "No group"} · Tee ${player.teeTime || "-"}` : `${playerGroupMap.get(player.id) || "No group"} · ${playerStatus(player)}`}</div>
             </div>
             <div class="score-badge ${player.completed === 0 ? "" : scoreTone(player.netToPar)}">${player.completed === 0 ? "-" : scoreLabel(player.netToPar)}</div>
           </div>

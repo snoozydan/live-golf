@@ -192,11 +192,20 @@
   }
 
   async function replaceTournamentChildren(supabase, tournament) {
-    await supabase.from("tournament_holes").delete().eq("tournament_id", tournament.id);
-    await supabase.from("players").delete().eq("tournament_id", tournament.id);
-    await supabase.from("groups").delete().eq("tournament_id", tournament.id);
-    await supabase.from("scores").delete().eq("tournament_id", tournament.id);
-    await supabase.from("score_updates").delete().eq("tournament_id", tournament.id);
+    const deleteTournamentHoles = await supabase.from("tournament_holes").delete().eq("tournament_id", tournament.id);
+    if (deleteTournamentHoles.error) throw deleteTournamentHoles.error;
+
+    const deletePlayers = await supabase.from("players").delete().eq("tournament_id", tournament.id);
+    if (deletePlayers.error) throw deletePlayers.error;
+
+    const deleteGroups = await supabase.from("groups").delete().eq("tournament_id", tournament.id);
+    if (deleteGroups.error) throw deleteGroups.error;
+
+    const deleteScores = await supabase.from("scores").delete().eq("tournament_id", tournament.id);
+    if (deleteScores.error) throw deleteScores.error;
+
+    const deleteUpdates = await supabase.from("score_updates").delete().eq("tournament_id", tournament.id);
+    if (deleteUpdates.error) throw deleteUpdates.error;
 
     const holeRows = tournament.course.map((hole) => ({
       tournament_id: tournament.id,
@@ -357,7 +366,8 @@
       if (error) throw error;
     }
 
-    await supabase.from("course_template_holes").delete().neq("hole_number", 0);
+    const deleteTemplateHoles = await supabase.from("course_template_holes").delete().neq("hole_number", 0);
+    if (deleteTemplateHoles.error) throw deleteTemplateHoles.error;
     const templateHoleRows = nextState.courseTemplates.flatMap((template) =>
       template.course.map((hole) => ({
         template_id: template.id,

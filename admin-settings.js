@@ -107,13 +107,19 @@ AdminCommon.initAdminPage({
         `Clear all scores for ${tournament?.tournamentName || "this tournament"}? Players and course settings will stay.`,
       );
       if (!confirmed) return;
-      let nextState = TournamentStore.clearTournamentScores(TournamentStore.loadState(), selectedTournamentId);
-      if (window.AppData?.enabled()) {
-        nextState = await window.AppData.persistState(nextState);
+      try {
+        let nextState = TournamentStore.clearTournamentScores(TournamentStore.loadState(), selectedTournamentId);
+        if (window.AppData?.enabled()) {
+          nextState = await window.AppData.persistState(nextState);
+        }
+        replaceState(nextState);
+        setDirty(false);
+        setMessage("Cleared all scores for selected tournament.");
+        await rerender(true);
+      } catch (error) {
+        console.error("Clear scores failed", error);
+        setMessage("Could not clear scores for this tournament. Please try again.");
       }
-      replaceState(nextState);
-      setMessage("Cleared all scores for selected tournament.");
-      await rerender(true);
     };
   },
 });

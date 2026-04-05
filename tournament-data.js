@@ -372,7 +372,46 @@
     }
 
     const computed = tournament.players.map((player) => computePlayer(player, tournament.course));
+    const allPlayersUnstarted = computed.every((player) => player.completed === 0);
+
+    function teeTimeMinutes(value) {
+      const match = String(value || "")
+        .trim()
+        .match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+
+      if (!match) {
+        return Number.POSITIVE_INFINITY;
+      }
+
+      let hours = Number(match[1]) % 12;
+      const minutes = Number(match[2]);
+      const meridiem = match[3].toUpperCase();
+      if (meridiem === "PM") {
+        hours += 12;
+      }
+      return hours * 60 + minutes;
+    }
+
+    function firstName(value) {
+      return String(value || "")
+        .trim()
+        .split(/\s+/)[0]
+        .toLowerCase();
+    }
+
     computed.sort((left, right) => {
+      if (allPlayersUnstarted || (left.completed === 0 && right.completed === 0)) {
+        const teeDiff = teeTimeMinutes(left.teeTime) - teeTimeMinutes(right.teeTime);
+        if (teeDiff !== 0) {
+          return teeDiff;
+        }
+
+        const firstNameDiff = firstName(left.name).localeCompare(firstName(right.name));
+        if (firstNameDiff !== 0) {
+          return firstNameDiff;
+        }
+      }
+
       if (left.netToPar !== right.netToPar) {
         return left.netToPar - right.netToPar;
       }

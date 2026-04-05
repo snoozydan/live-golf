@@ -3,6 +3,8 @@ AdminCommon.initAdminPage({
     const newPlayerNameInput = document.getElementById("new-player-name-input");
     const newPlayerCodeInput = document.getElementById("new-player-code-input");
     const newPlayerFlightInput = document.getElementById("new-player-flight-input");
+    const playerCountInput = document.getElementById("player-count-input");
+    const setPlayerCountButton = document.getElementById("set-player-count-button");
     const addPlayerButton = document.getElementById("add-player-button");
     const saveButton = document.getElementById("save-button");
     const playerList = document.getElementById("admin-player-list");
@@ -10,8 +12,23 @@ AdminCommon.initAdminPage({
 
     let draftPlayers = tournament ? tournament.players.map((player) => ({ ...player, scores: [...player.scores] })) : [];
     sectionLabel.textContent = tournament ? `Players for ${tournament.tournamentName}` : "Players";
+    playerCountInput.value = `${draftPlayers.length}`;
+
+    function makeBlankPlayer(index) {
+      return {
+        id: `draft-player-${Date.now()}-${index}-${Math.floor(Math.random() * 10000)}`,
+        name: `Player ${index}`,
+        hometown: "",
+        division: "Championship Flight",
+        teeTime: "",
+        accessCode: `P${index}`,
+        handicap: 0,
+        scores: new Array(18).fill(null),
+      };
+    }
 
     function renderPlayers() {
+      playerCountInput.value = `${draftPlayers.length}`;
       playerList.innerHTML = draftPlayers
         .map(
           (player) => `
@@ -22,7 +39,7 @@ AdminCommon.initAdminPage({
                   <div class="admin-meta">Code ${player.accessCode} · ${player.division}</div>
                 </div>
               </div>
-              <form class="admin-controls" data-player-form="${player.id}">
+              <form class="admin-controls admin-controls-six" data-player-form="${player.id}">
                 <label>
                   Name
                   <input type="text" name="name" value="${player.name}" />
@@ -34,6 +51,10 @@ AdminCommon.initAdminPage({
                 <label>
                   Flight
                   <input type="text" name="division" value="${player.division}" />
+                </label>
+                <label>
+                  Tee time
+                  <input type="text" name="teeTime" value="${player.teeTime || ""}" placeholder="8:10 AM" />
                 </label>
                 <label>
                   Handicap
@@ -56,6 +77,7 @@ AdminCommon.initAdminPage({
           player.name = form.querySelector('input[name="name"]').value;
           player.accessCode = form.querySelector('input[name="accessCode"]').value.toUpperCase();
           player.division = form.querySelector('input[name="division"]').value;
+          player.teeTime = form.querySelector('input[name="teeTime"]').value;
           player.handicap = form.querySelector('input[name="handicap"]').value;
           setMessage("Unsaved player changes.");
         });
@@ -94,6 +116,38 @@ AdminCommon.initAdminPage({
       newPlayerFlightInput.value = "";
       renderPlayers();
       setMessage("Unsaved player changes.");
+    };
+
+    setPlayerCountButton.onclick = () => {
+      const requestedCount = Math.max(1, Math.min(144, Number(playerCountInput.value) || draftPlayers.length || 1));
+      if (requestedCount === draftPlayers.length) {
+        setMessage("Player count already matches this tournament.");
+        return;
+      }
+
+      if (requestedCount > draftPlayers.length) {
+        const nextPlayers = [...draftPlayers];
+        for (let index = draftPlayers.length + 1; index <= requestedCount; index += 1) {
+          nextPlayers.push(makeBlankPlayer(index));
+        }
+        draftPlayers = nextPlayers;
+        renderPlayers();
+        setMessage("Added blank player rows for this tournament.");
+        return;
+      }
+
+      const confirmed = window.confirm(
+        `Reduce this tournament from ${draftPlayers.length} players to ${requestedCount}? The last ${draftPlayers.length - requestedCount} player rows will be removed.`,
+      );
+
+      if (!confirmed) {
+        playerCountInput.value = `${draftPlayers.length}`;
+        return;
+      }
+
+      draftPlayers = draftPlayers.slice(0, requestedCount);
+      renderPlayers();
+      setMessage("Reduced the player list for this tournament.");
     };
 
     saveButton.onclick = async () => {

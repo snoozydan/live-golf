@@ -47,6 +47,7 @@ Use the admin page to:
 - Mark one tournament as the live public leaderboard event
 - Mark tournaments as `live`, `upcoming`, or `completed`
 - Edit tournament name, course name, leaderboard intro text, players, handicaps, yardage, par, and stroke index
+- Edit player tee times and set the player count for each tournament
 - Manage tournaments in scoped admin tabs for `Settings`, `Players`, and `Course`
 - Add and remove players per tournament so each event can have its own field
 - Reuse saved course templates when creating a tournament

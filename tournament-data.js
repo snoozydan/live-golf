@@ -502,6 +502,7 @@
           ...player,
           name: String(changes.name || "").trim() || player.name,
           division: String(changes.division || "").trim() || player.division,
+          teeTime: String(changes.teeTime || "").trim(),
           accessCode: codeTaken ? player.accessCode : normalizedCode || player.accessCode,
         };
       }),

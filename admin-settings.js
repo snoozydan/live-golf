@@ -120,10 +120,9 @@ AdminCommon.initAdminPage({
       );
       if (!confirmed) return;
       try {
-        let nextState = TournamentStore.clearTournamentScores(TournamentStore.loadState(), selectedTournamentId);
-        if (window.AppData?.enabled()) {
-          nextState = await window.AppData.persistState(nextState);
-        }
+        let nextState = window.AppData?.enabled()
+          ? await window.AppData.clearTournamentScores(selectedTournamentId)
+          : TournamentStore.clearTournamentScores(TournamentStore.loadState(), selectedTournamentId);
         replaceState(nextState);
         setDirty(false);
         setMessage("Cleared all scores for selected tournament.");

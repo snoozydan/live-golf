@@ -403,6 +403,39 @@
     }
   }
 
+  async function clearTournamentScores(tournamentId) {
+    const supabase = getClient();
+    if (!supabase) {
+      const nextState = TournamentStore.clearTournamentScores(TournamentStore.loadState(), tournamentId);
+      TournamentStore.saveState(nextState);
+      return nextState;
+    }
+
+    isPersisting = true;
+    needsRefreshAfterPersist = false;
+
+    try {
+      const deleteScores = await supabase.from("scores").delete().eq("tournament_id", tournamentId);
+      if (deleteScores.error) throw deleteScores.error;
+
+      const deleteUpdates = await supabase.from("score_updates").delete().eq("tournament_id", tournamentId);
+      if (deleteUpdates.error) throw deleteUpdates.error;
+
+      const refreshedState = await loadRemoteState();
+      notifySubscribers();
+      return refreshedState;
+    } finally {
+      isPersisting = false;
+      if (needsRefreshAfterPersist) {
+        needsRefreshAfterPersist = false;
+        const refreshedState = await loadRemoteState().catch(() => null);
+        if (refreshedState) {
+          notifySubscribers();
+        }
+      }
+    }
+  }
+
   async function bootstrap() {
     if (bootstrapping) {
       return bootstrapping;
@@ -469,6 +502,7 @@
     enabled: () => Boolean(getClient()),
     bootstrap,
     persistState,
+    clearTournamentScores,
     subscribe,
   };
 })();

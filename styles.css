@@ -779,6 +779,41 @@ button {
   font-size: 0.9rem;
 }
 
+.player-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.movement-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.movement-pill.up {
+  background: rgba(13, 107, 69, 0.12);
+  color: var(--accent);
+}
+
+.movement-pill.down {
+  background: rgba(180, 74, 53, 0.12);
+  color: var(--danger);
+}
+
+.movement-pill.neutral {
+  background: rgba(97, 114, 103, 0.14);
+  color: var(--muted);
+}
+
 .leaderboard-metric {
   text-align: right;
 }
@@ -819,6 +854,21 @@ button {
   border-radius: 18px;
   padding: 12px;
   border: 1px solid rgba(24, 36, 27, 0.08);
+}
+
+.leaderboard-hole-card.result-birdie {
+  background: rgba(191, 229, 208, 0.58);
+  border-color: rgba(13, 107, 69, 0.18);
+}
+
+.leaderboard-hole-card.result-par {
+  background: rgba(255, 248, 232, 0.78);
+  border-color: rgba(184, 120, 32, 0.14);
+}
+
+.leaderboard-hole-card.result-bogey {
+  background: rgba(255, 239, 235, 0.88);
+  border-color: rgba(180, 74, 53, 0.14);
 }
 
 .score-under {

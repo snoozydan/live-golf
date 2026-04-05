@@ -46,6 +46,9 @@ function sessionKey(tournamentId) {
 }
 
 function scoreLabel(value) {
+  if (value === null || value === undefined) {
+    return "-";
+  }
   if (value === 0) {
     return "E";
   }

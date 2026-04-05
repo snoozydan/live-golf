@@ -5,7 +5,14 @@ const leaderboardList = document.getElementById("leaderboard-list");
 const leaderboardPlayerCards = document.getElementById("leaderboard-player-cards");
 const expandedPlayers = new Set();
 
+function movementStorageKey(tournamentId) {
+  return `fairway-live-leaderboard-movement-${tournamentId}`;
+}
+
 function scoreLabel(value) {
+  if (value === null || value === undefined) {
+    return "-";
+  }
   if (value === 0) {
     return "E";
   }
@@ -20,6 +27,60 @@ function scoreTone(value) {
     return "score-over";
   }
   return "score-even";
+}
+
+function playerStatus(player) {
+  if (player.completed === 0) {
+    return "Not started";
+  }
+  if (player.completed === 18) {
+    return "F";
+  }
+  return `On ${Math.min(18, player.completed + 1)}`;
+}
+
+function grossResultLabel(delta) {
+  if (delta <= -2) return "Eagle";
+  if (delta === -1) return "Birdie";
+  if (delta === 0) return "Par";
+  if (delta === 1) return "Bogey";
+  if (delta === 2) return "Double";
+  return `+${delta}`;
+}
+
+function grossResultClass(delta) {
+  if (delta <= -1) return "result-birdie";
+  if (delta === 0) return "result-par";
+  return "result-bogey";
+}
+
+function loadPreviousPositions(tournamentId) {
+  try {
+    return JSON.parse(window.localStorage.getItem(movementStorageKey(tournamentId)) || "{}");
+  } catch (error) {
+    return {};
+  }
+}
+
+function saveCurrentPositions(tournamentId, ranked) {
+  const positions = Object.fromEntries(ranked.map((player, index) => [player.id, index + 1]));
+  window.localStorage.setItem(movementStorageKey(tournamentId), JSON.stringify(positions));
+}
+
+function movementMarkup(player, index, previousPositions) {
+  const previous = previousPositions[player.id];
+  if (!previous || player.completed === 0) {
+    return `<span class="movement-pill neutral">-</span>`;
+  }
+
+  const current = index + 1;
+  if (current < previous) {
+    return `<span class="movement-pill up">Up ${previous - current}</span>`;
+  }
+  if (current > previous) {
+    return `<span class="movement-pill down">Down ${current - previous}</span>`;
+  }
+  return `<span class="movement-pill neutral">Even</span>`;
 }
 
 async function renderLeaderboardPage() {
@@ -39,6 +100,7 @@ async function renderLeaderboardPage() {
   leaderboardEventName.textContent = tournament.tournamentName;
   leaderboardCourseName.textContent = tournament.courseName;
   leaderboardDescription.textContent = tournament.leaderboardDescription;
+  const previousPositions = loadPreviousPositions(tournament.id);
 
   const playerGroupMap = new Map();
   tournament.groups.forEach((group, index) => {
@@ -49,7 +111,12 @@ async function renderLeaderboardPage() {
 
   leaderboardList.innerHTML = ranked
     .map(
-      (player) => `
+      (player, index) => {
+        const netDisplay = player.completed === 0 ? "-" : scoreLabel(player.netToPar);
+        const grossDisplay = player.completed === 0 ? "-" : scoreLabel(player.grossToPar);
+        const statusText = playerStatus(player);
+        const movement = movementMarkup(player, index, previousPositions);
+        return `
         <article class="leaderboard-entry">
           <div class="leaderboard-row">
             <div><span class="rank-pill">T${String(player.rank).replace(/^T/, "")}</span></div>
@@ -57,18 +124,25 @@ async function renderLeaderboardPage() {
               <button class="player-toggle" type="button" data-player-toggle="${player.id}">
                 <span class="player-name">${player.name}</span>
               </button>
-              <div class="player-meta">${playerGroupMap.get(player.id) || "No group"} · HCP ${player.handicap} · Thru ${player.thru}</div>
+              <div class="player-meta-row">
+                <div class="player-meta">${playerGroupMap.get(player.id) || "No group"} · HCP ${player.handicap} · ${statusText}</div>
+                ${movement}
+              </div>
             </div>
             <div class="leaderboard-metric">
               <span class="metric-label">Net</span>
-              <span class="metric-value ${scoreTone(player.netToPar)}">${scoreLabel(player.netToPar)}</span>
+              <span class="metric-value ${player.completed === 0 ? "" : scoreTone(player.netToPar)}">${netDisplay}</span>
             </div>
             <div class="leaderboard-metric">
               <span class="metric-label">Gross</span>
-              <span class="metric-value ${scoreTone(player.grossToPar)}">${scoreLabel(player.grossToPar)}</span>
+              <span class="metric-value ${player.completed === 0 ? "" : scoreTone(player.grossToPar)}">${grossDisplay}</span>
             </div>
             <div class="leaderboard-metric">
-              <span class="metric-label">Strokes</span>
+              <span class="metric-label">Status</span>
+              <span class="metric-value">${player.completed === 18 ? "F" : player.completed === 0 ? "-" : player.completed}</span>
+            </div>
+            <div class="leaderboard-metric">
+              <span class="metric-label">Gross</span>
               <span class="metric-value">${player.gross || "-"}</span>
             </div>
             <div class="leaderboard-metric">
@@ -85,6 +159,8 @@ async function renderLeaderboardPage() {
               ? `
             <div class="leaderboard-detail">
               <div class="leaderboard-detail-summary">
+                <div class="detail-pill">Status ${statusText}</div>
+                <div class="detail-pill">Tee ${player.teeTime || "-"}</div>
                 <div class="detail-pill">Gross ${scoreLabel(player.grossToPar)}</div>
                 <div class="detail-pill">Net ${scoreLabel(player.netToPar)}</div>
                 <div class="detail-pill">Total Gross ${player.gross || "-"}</div>
@@ -96,12 +172,13 @@ async function renderLeaderboardPage() {
                     const hole = tournament.course[index];
                     const strokes = player.allocation[index].strokes;
                     const netScore = score === null ? null : Math.max(1, Number(score) - strokes);
+                    const delta = score === null ? null : Number(score) - hole.par;
                     return `
-                      <div class="leaderboard-hole-card ${score === null ? "score-missing" : "score-entered"}">
+                      <div class="leaderboard-hole-card ${score === null ? "score-missing" : `score-entered ${grossResultClass(delta)}`}">
                         <div class="hole-card-title">Hole ${hole.hole}</div>
                         <div class="hole-card-line">Par ${hole.par} · SI ${hole.strokeIndex}</div>
                         <div class="hole-card-value">${score === null ? "-" : `${score} gross`}</div>
-                        <div class="hole-card-line">${score === null ? "No score yet" : `Net ${netScore}`}</div>
+                        <div class="hole-card-line">${score === null ? "No score yet" : `${grossResultLabel(delta)} · Net ${netScore}`}</div>
                       </div>
                     `;
                   })
@@ -112,7 +189,8 @@ async function renderLeaderboardPage() {
               : ""
           }
         </article>
-      `,
+      `;
+      },
     )
     .join("");
 
@@ -135,9 +213,9 @@ async function renderLeaderboardPage() {
           <div class="player-card-header">
             <div>
               <h3>${player.name}</h3>
-              <div class="card-subline">Net ${scoreLabel(player.netToPar)} · Handicap ${player.handicap}</div>
+              <div class="card-subline">${playerGroupMap.get(player.id) || "No group"} · Tee ${player.teeTime || "-"} · ${playerStatus(player)}</div>
             </div>
-            <div class="score-badge ${scoreTone(player.netToPar)}">${scoreLabel(player.netToPar)}</div>
+            <div class="score-badge ${player.completed === 0 ? "" : scoreTone(player.netToPar)}">${player.completed === 0 ? "-" : scoreLabel(player.netToPar)}</div>
           </div>
           <div class="mini-hole-grid">
             ${player.allocation
@@ -154,6 +232,8 @@ async function renderLeaderboardPage() {
       `,
     )
     .join("");
+
+  saveCurrentPositions(tournament.id, ranked);
 }
 
 window.addEventListener("storage", renderLeaderboardPage);

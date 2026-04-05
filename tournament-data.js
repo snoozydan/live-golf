@@ -400,6 +400,13 @@
     }
 
     computed.sort((left, right) => {
+      if (left.completed === 0 && right.completed > 0) {
+        return 1;
+      }
+      if (left.completed > 0 && right.completed === 0) {
+        return -1;
+      }
+
       if (allPlayersUnstarted || (left.completed === 0 && right.completed === 0)) {
         const teeDiff = teeTimeMinutes(left.teeTime) - teeTimeMinutes(right.teeTime);
         if (teeDiff !== 0) {

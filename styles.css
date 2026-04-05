@@ -398,6 +398,13 @@ button {
   transform: translateY(-1px);
 }
 
+.primary-button:disabled,
+.ghost-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .info-card,
 .empty-state,
 .admin-settings-card,

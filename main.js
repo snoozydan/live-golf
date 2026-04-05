@@ -18,6 +18,7 @@ const playerScorecard = document.getElementById("player-scorecard");
 const groupScoreRows = document.getElementById("group-score-rows");
 const updatesFeed = document.getElementById("updates-feed");
 const scoreSaveMessage = document.getElementById("score-save-message");
+const postGroupScoresButton = document.getElementById("post-group-scores-button");
 
 const eventName = document.getElementById("event-name");
 const courseName = document.getElementById("course-name");
@@ -26,6 +27,19 @@ const snapshotLeaders = document.getElementById("snapshot-leaders");
 let state = TournamentStore.loadState();
 let activeGroupId = null;
 let selectedHoleNumber = 1;
+let isPostingScores = false;
+
+function setPostingState(isPosting) {
+  isPostingScores = isPosting;
+  postGroupScoresButton.disabled = isPosting;
+  postGroupScoresButton.textContent = isPosting ? "Saving..." : "Post group scores";
+  playerHoleSelect.disabled = isPosting;
+  previousHoleButton.disabled = isPosting || Number(playerHoleSelect.value || selectedHoleNumber) <= 1;
+  nextHoleButton.disabled = isPosting || Number(playerHoleSelect.value || selectedHoleNumber) >= 18;
+  groupScoreRows.querySelectorAll("input").forEach((input) => {
+    input.disabled = isPosting;
+  });
+}
 
 function sessionKey(tournamentId) {
   return `fairway-live-active-group-${tournamentId}`;
@@ -287,6 +301,7 @@ function renderActiveGroup() {
 
   renderGroupInputs(group, tournament);
   renderGroupCards(group, tournament);
+  setPostingState(isPostingScores);
 }
 
 async function rerender(reload) {
@@ -321,39 +336,63 @@ loginForm.addEventListener("submit", async (event) => {
 
 playerScoreForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (isPostingScores) {
+    return;
+  }
+
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
   const savedHoleNumber = Number(playerHoleSelect.value);
 
+  const filledInputs = group.playerIds
+    .map((playerId) => groupScoreRows.querySelector(`input[name="score-${playerId}"]`))
+    .filter((input) => input && input.value !== "");
+
+  if (!filledInputs.length) {
+    scoreSaveMessage.textContent = `Enter at least one score before saving hole ${savedHoleNumber}.`;
+    scoreSaveMessage.classList.remove("hidden");
+    return;
+  }
+
+  setPostingState(true);
+
   let nextState = state;
-  group.playerIds.forEach((playerId) => {
-    const input = groupScoreRows.querySelector(`input[name="score-${playerId}"]`);
-    if (!input || input.value === "") return;
-    nextState = TournamentStore.updatePlayerScore(
-      nextState,
-      tournament.id,
-      playerId,
-      Number(playerHoleSelect.value),
-      Number(input.value),
-    );
-  });
+  try {
+    group.playerIds.forEach((playerId) => {
+      const input = groupScoreRows.querySelector(`input[name="score-${playerId}"]`);
+      if (!input || input.value === "") return;
+      nextState = TournamentStore.updatePlayerScore(
+        nextState,
+        tournament.id,
+        playerId,
+        Number(playerHoleSelect.value),
+        Number(input.value),
+      );
+    });
 
-  state = nextState;
-  if (window.AppData?.enabled()) {
-    state = await window.AppData.persistState(state);
+    state = nextState;
+    if (window.AppData?.enabled()) {
+      state = await window.AppData.persistState(state);
+    }
+
+    if (savedHoleNumber < 18) {
+      selectedHoleNumber = savedHoleNumber + 1;
+    } else {
+      selectedHoleNumber = 18;
+    }
+
+    scoreSaveMessage.textContent = `Scores for hole ${savedHoleNumber} have been saved.`;
+    scoreSaveMessage.classList.remove("hidden");
+    loginMessage.textContent = "Group scores posted successfully.";
+    await rerender(true);
+  } catch (error) {
+    console.error("Posting group scores failed", error);
+    scoreSaveMessage.textContent = `Could not save hole ${savedHoleNumber}. Please try again.`;
+    scoreSaveMessage.classList.remove("hidden");
+  } finally {
+    setPostingState(false);
   }
-
-  if (savedHoleNumber < 18) {
-    selectedHoleNumber = savedHoleNumber + 1;
-  } else {
-    selectedHoleNumber = 18;
-  }
-
-  scoreSaveMessage.textContent = `Scores for hole ${savedHoleNumber} have been saved.`;
-  scoreSaveMessage.classList.remove("hidden");
-  loginMessage.textContent = "Group scores posted successfully.";
-  await rerender(true);
 });
 
 playerHoleSelect.addEventListener("change", async () => {

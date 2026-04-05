@@ -17,6 +17,7 @@ const strokeHoleGrid = document.getElementById("stroke-hole-grid");
 const playerScorecard = document.getElementById("player-scorecard");
 const groupScoreRows = document.getElementById("group-score-rows");
 const updatesFeed = document.getElementById("updates-feed");
+const scoreSaveMessage = document.getElementById("score-save-message");
 
 const eventName = document.getElementById("event-name");
 const courseName = document.getElementById("course-name");
@@ -232,6 +233,7 @@ function renderActiveGroup() {
     playerPanelEmpty.classList.remove("hidden");
     playerPanelEmpty.textContent = "No live tournament is currently selected in admin.";
     loginForm.classList.add("hidden");
+    scoreSaveMessage.classList.add("hidden");
     return;
   }
 
@@ -242,6 +244,7 @@ function renderActiveGroup() {
     playerPanelTitle.textContent = "No group selected";
     loginForm.classList.remove("hidden");
     playerSignoutButton.classList.add("hidden");
+    scoreSaveMessage.classList.add("hidden");
     return;
   }
 
@@ -321,6 +324,7 @@ playerScoreForm.addEventListener("submit", async (event) => {
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
+  const savedHoleNumber = Number(playerHoleSelect.value);
 
   let nextState = state;
   group.playerIds.forEach((playerId) => {
@@ -339,6 +343,8 @@ playerScoreForm.addEventListener("submit", async (event) => {
   if (window.AppData?.enabled()) {
     state = await window.AppData.persistState(state);
   }
+  scoreSaveMessage.textContent = `Scores for hole ${savedHoleNumber} have been saved.`;
+  scoreSaveMessage.classList.remove("hidden");
   loginMessage.textContent = "Group scores posted successfully.";
   await rerender(true);
 });
@@ -377,6 +383,7 @@ playerSignoutButton.addEventListener("click", async () => {
   saveActiveGroupSession(null);
   playerCodeInput.value = "";
   loginMessage.textContent = "Group signed out on this device.";
+  scoreSaveMessage.classList.add("hidden");
   await rerender(false);
 });
 

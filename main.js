@@ -343,6 +343,13 @@ playerScoreForm.addEventListener("submit", async (event) => {
   if (window.AppData?.enabled()) {
     state = await window.AppData.persistState(state);
   }
+
+  if (savedHoleNumber < 18) {
+    selectedHoleNumber = savedHoleNumber + 1;
+  } else {
+    selectedHoleNumber = 18;
+  }
+
   scoreSaveMessage.textContent = `Scores for hole ${savedHoleNumber} have been saved.`;
   scoreSaveMessage.classList.remove("hidden");
   loginMessage.textContent = "Group scores posted successfully.";

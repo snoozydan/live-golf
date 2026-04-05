@@ -418,6 +418,15 @@ button {
   color: var(--muted);
 }
 
+.success-card {
+  padding: 18px;
+  color: #0a5637;
+  background: rgba(191, 229, 208, 0.95);
+  border-color: rgba(13, 107, 69, 0.22);
+  font-weight: 800;
+  box-shadow: 0 12px 24px rgba(13, 107, 69, 0.12);
+}
+
 .admin-settings-card {
   margin-bottom: 20px;
 }

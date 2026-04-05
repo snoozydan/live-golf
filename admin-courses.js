@@ -91,51 +91,69 @@ AdminCommon.initAdminPage({
         setMessage("Choose a saved course first.");
         return;
       }
-      let nextState = TournamentStore.applyCourseTemplate(TournamentStore.loadState(), selectedTournamentId, applyCourseTemplateSelect.value);
-      if (window.AppData?.enabled()) {
-        nextState = await window.AppData.persistState(nextState);
+      try {
+        let nextState = TournamentStore.applyCourseTemplate(TournamentStore.loadState(), selectedTournamentId, applyCourseTemplateSelect.value);
+        if (window.AppData?.enabled()) {
+          nextState = await window.AppData.persistState(nextState);
+        }
+        replaceState(nextState);
+        draftCourse = TournamentStore.getTournament(nextState, selectedTournamentId)?.course.map((hole) => ({ ...hole })) || [];
+        setDirty(false);
+        setMessage("Applied course template to selected tournament.");
+        await rerender(true);
+      } catch (error) {
+        console.error("Apply course template failed", error);
+        setMessage("Could not apply the saved course. Please try again.");
       }
-      replaceState(nextState);
-      draftCourse = TournamentStore.getTournament(nextState, selectedTournamentId)?.course.map((hole) => ({ ...hole })) || [];
-      setMessage("Applied course template to selected tournament.");
-      await rerender(true);
     };
 
     saveCourseTemplateButton.onclick = async () => {
-      let nextState = TournamentStore.saveTournamentCourseAsTemplate(
-        TournamentStore.loadState(),
-        selectedTournamentId,
-        saveCourseTemplateNameInput.value.trim(),
-      );
-      if (window.AppData?.enabled()) {
-        nextState = await window.AppData.persistState(nextState);
+      try {
+        let nextState = TournamentStore.saveTournamentCourseAsTemplate(
+          TournamentStore.loadState(),
+          selectedTournamentId,
+          saveCourseTemplateNameInput.value.trim(),
+        );
+        if (window.AppData?.enabled()) {
+          nextState = await window.AppData.persistState(nextState);
+        }
+        replaceState(nextState);
+        saveCourseTemplateNameInput.value = "";
+        setDirty(false);
+        setMessage("Saved current tournament course as template.");
+        await rerender(true);
+      } catch (error) {
+        console.error("Save course template failed", error);
+        setMessage("Could not save the course template. Please try again.");
       }
-      replaceState(nextState);
-      saveCourseTemplateNameInput.value = "";
-      setMessage("Saved current tournament course as template.");
-      await rerender(true);
     };
 
     saveButton.onclick = async () => {
-      let nextState = TournamentStore.loadState();
-      if (selectedCourseEditTarget === "tournament") {
-        draftCourse.forEach((hole) => {
-          nextState = TournamentStore.updateHole(nextState, selectedTournamentId, hole.hole, hole);
-        });
-      } else {
-        getActiveCourse().forEach((hole) => {
-          nextState = TournamentStore.updateCourseTemplate(nextState, selectedCourseEditTarget, {
-            holeNumber: hole.hole,
-            ...hole,
+      try {
+        let nextState = TournamentStore.loadState();
+        if (selectedCourseEditTarget === "tournament") {
+          draftCourse.forEach((hole) => {
+            nextState = TournamentStore.updateHole(nextState, selectedTournamentId, hole.hole, hole);
           });
-        });
+        } else {
+          getActiveCourse().forEach((hole) => {
+            nextState = TournamentStore.updateCourseTemplate(nextState, selectedCourseEditTarget, {
+              holeNumber: hole.hole,
+              ...hole,
+            });
+          });
+        }
+        if (window.AppData?.enabled()) {
+          nextState = await window.AppData.persistState(nextState);
+        }
+        replaceState(nextState);
+        setDirty(false);
+        setMessage("Saved course changes.");
+        await rerender(true);
+      } catch (error) {
+        console.error("Save course changes failed", error);
+        setMessage("Could not save course changes. Please try again.");
       }
-      if (window.AppData?.enabled()) {
-        nextState = await window.AppData.persistState(nextState);
-      }
-      replaceState(nextState);
-      setMessage("Saved course changes.");
-      await rerender(true);
     };
 
     renderCourseControls();

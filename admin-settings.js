@@ -77,29 +77,41 @@ AdminCommon.initAdminPage({
     };
 
     setLiveButton.onclick = async () => {
-      let nextState = TournamentStore.setLeaderboardTournament(TournamentStore.loadState(), liveTournamentSelect.value);
-      if (window.AppData?.enabled()) {
-        nextState = await window.AppData.persistState(nextState);
+      try {
+        let nextState = TournamentStore.setLeaderboardTournament(TournamentStore.loadState(), liveTournamentSelect.value);
+        if (window.AppData?.enabled()) {
+          nextState = await window.AppData.persistState(nextState);
+        }
+        replaceState(nextState);
+        setDirty(false);
+        setMessage("Updated live leaderboard tournament.");
+        await rerender(true);
+      } catch (error) {
+        console.error("Set live leaderboard failed", error);
+        setMessage("Could not update the live leaderboard tournament. Please try again.");
       }
-      replaceState(nextState);
-      setMessage("Updated live leaderboard tournament.");
-      await rerender(true);
     };
 
     saveButton.onclick = async () => {
-      let nextState = TournamentStore.loadState();
+      try {
+        let nextState = TournamentStore.loadState();
 
-      if (selectedCourseTemplateId) {
-        nextState = TournamentStore.applyCourseTemplate(nextState, selectedTournamentId, selectedCourseTemplateId);
-      }
+        if (selectedCourseTemplateId) {
+          nextState = TournamentStore.applyCourseTemplate(nextState, selectedTournamentId, selectedCourseTemplateId);
+        }
 
-      nextState = TournamentStore.updateTournamentSettings(nextState, selectedTournamentId, draftSettings);
-      if (window.AppData?.enabled()) {
-        nextState = await window.AppData.persistState(nextState);
+        nextState = TournamentStore.updateTournamentSettings(nextState, selectedTournamentId, draftSettings);
+        if (window.AppData?.enabled()) {
+          nextState = await window.AppData.persistState(nextState);
+        }
+        replaceState(nextState);
+        setDirty(false);
+        setMessage("Saved settings changes.");
+        await rerender(true);
+      } catch (error) {
+        console.error("Save settings failed", error);
+        setMessage("Could not save settings changes. Please try again.");
       }
-      replaceState(nextState);
-      setMessage("Saved settings changes.");
-      await rerender(true);
     };
 
     clearScoresButton.onclick = async () => {

@@ -131,13 +131,19 @@ AdminCommon.initAdminPage({
         }
         seen.add(code);
       }
-      let nextState = TournamentStore.updateTournamentGroups(TournamentStore.loadState(), selectedTournamentId, draftGroups);
-      if (window.AppData?.enabled()) {
-        nextState = await window.AppData.persistState(nextState);
+      try {
+        let nextState = TournamentStore.updateTournamentGroups(TournamentStore.loadState(), selectedTournamentId, draftGroups);
+        if (window.AppData?.enabled()) {
+          nextState = await window.AppData.persistState(nextState);
+        }
+        replaceState(nextState);
+        setDirty(false);
+        setMessage("Saved group changes.");
+        await rerender(true);
+      } catch (error) {
+        console.error("Save group changes failed", error);
+        setMessage("Could not save group changes. Please try again.");
       }
-      replaceState(nextState);
-      setMessage("Saved group changes.");
-      await rerender(true);
     };
 
     renderGroups();

@@ -2,6 +2,8 @@
   let client = null;
   let bootstrapping = null;
   let syncChannel = null;
+  let isPersisting = false;
+  let needsRefreshAfterPersist = false;
   const subscribers = new Set();
 
   function hasConfig() {
@@ -304,85 +306,101 @@
       return TournamentStore.saveState(state || TournamentStore.loadState());
     }
 
-    const nextState = TournamentStore.saveState(state || TournamentStore.loadState());
-    const existingTournaments = await supabase.from("tournaments").select("id");
-    if (existingTournaments.error) {
-      throw existingTournaments.error;
-    }
+    isPersisting = true;
+    needsRefreshAfterPersist = false;
 
-    const nextTournamentIds = nextState.tournaments.map((tournament) => tournament.id);
-    const staleTournamentIds = (existingTournaments.data || [])
-      .map((row) => row.id)
-      .filter((id) => !nextTournamentIds.includes(id));
+    try {
+      const nextState = TournamentStore.saveState(state || TournamentStore.loadState());
+      const existingTournaments = await supabase.from("tournaments").select("id");
+      if (existingTournaments.error) {
+        throw existingTournaments.error;
+      }
 
-    if (staleTournamentIds.length) {
-      const { error } = await supabase.from("tournaments").delete().in("id", staleTournamentIds);
-      if (error) throw error;
-    }
+      const nextTournamentIds = nextState.tournaments.map((tournament) => tournament.id);
+      const staleTournamentIds = (existingTournaments.data || [])
+        .map((row) => row.id)
+        .filter((id) => !nextTournamentIds.includes(id));
 
-    const tournamentRows = nextState.tournaments.map((tournament) => ({
-      id: tournament.id,
-      tournament_name: tournament.tournamentName,
-      course_name: tournament.courseName,
-      leaderboard_description: tournament.leaderboardDescription,
-      status: tournament.status,
-      is_live: tournament.id === nextState.leaderboardTournamentId,
-      admin_code: nextState.adminCode,
-      updated_at: new Date().toISOString(),
-    }));
+      if (staleTournamentIds.length) {
+        const { error } = await supabase.from("tournaments").delete().in("id", staleTournamentIds);
+        if (error) throw error;
+      }
 
-    if (tournamentRows.length) {
-      const { error } = await supabase.from("tournaments").upsert(tournamentRows);
-      if (error) throw error;
-    }
+      const tournamentRows = nextState.tournaments.map((tournament) => ({
+        id: tournament.id,
+        tournament_name: tournament.tournamentName,
+        course_name: tournament.courseName,
+        leaderboard_description: tournament.leaderboardDescription,
+        status: tournament.status,
+        is_live: tournament.id === nextState.leaderboardTournamentId,
+        admin_code: nextState.adminCode,
+        updated_at: new Date().toISOString(),
+      }));
 
-    for (const tournament of nextState.tournaments) {
-      await replaceTournamentChildren(supabase, tournament);
-    }
+      if (tournamentRows.length) {
+        const { error } = await supabase.from("tournaments").upsert(tournamentRows);
+        if (error) throw error;
+      }
 
-    const existingTemplates = await supabase.from("course_templates").select("id");
-    if (existingTemplates.error) {
-      throw existingTemplates.error;
-    }
+      for (const tournament of nextState.tournaments) {
+        await replaceTournamentChildren(supabase, tournament);
+      }
 
-    const nextTemplateIds = nextState.courseTemplates.map((template) => template.id);
-    const staleTemplateIds = (existingTemplates.data || [])
-      .map((row) => row.id)
-      .filter((id) => !nextTemplateIds.includes(id));
+      const existingTemplates = await supabase.from("course_templates").select("id");
+      if (existingTemplates.error) {
+        throw existingTemplates.error;
+      }
 
-    if (staleTemplateIds.length) {
-      const { error } = await supabase.from("course_templates").delete().in("id", staleTemplateIds);
-      if (error) throw error;
-    }
+      const nextTemplateIds = nextState.courseTemplates.map((template) => template.id);
+      const staleTemplateIds = (existingTemplates.data || [])
+        .map((row) => row.id)
+        .filter((id) => !nextTemplateIds.includes(id));
 
-    if (nextState.courseTemplates.length) {
-      const { error } = await supabase.from("course_templates").upsert(
-        nextState.courseTemplates.map((template) => ({
-          id: template.id,
-          name: template.name,
-          updated_at: new Date().toISOString(),
+      if (staleTemplateIds.length) {
+        const { error } = await supabase.from("course_templates").delete().in("id", staleTemplateIds);
+        if (error) throw error;
+      }
+
+      if (nextState.courseTemplates.length) {
+        const { error } = await supabase.from("course_templates").upsert(
+          nextState.courseTemplates.map((template) => ({
+            id: template.id,
+            name: template.name,
+            updated_at: new Date().toISOString(),
+          })),
+        );
+        if (error) throw error;
+      }
+
+      const deleteTemplateHoles = await supabase.from("course_template_holes").delete().neq("hole_number", 0);
+      if (deleteTemplateHoles.error) throw deleteTemplateHoles.error;
+      const templateHoleRows = nextState.courseTemplates.flatMap((template) =>
+        template.course.map((hole) => ({
+          template_id: template.id,
+          hole_number: hole.hole,
+          par: Number(hole.par),
+          stroke_index: Number(hole.strokeIndex),
+          yardage: Number(hole.yardage),
         })),
       );
-      if (error) throw error;
-    }
+      if (templateHoleRows.length) {
+        const { error } = await supabase.from("course_template_holes").insert(templateHoleRows);
+        if (error) throw error;
+      }
 
-    const deleteTemplateHoles = await supabase.from("course_template_holes").delete().neq("hole_number", 0);
-    if (deleteTemplateHoles.error) throw deleteTemplateHoles.error;
-    const templateHoleRows = nextState.courseTemplates.flatMap((template) =>
-      template.course.map((hole) => ({
-        template_id: template.id,
-        hole_number: hole.hole,
-        par: Number(hole.par),
-        stroke_index: Number(hole.strokeIndex),
-        yardage: Number(hole.yardage),
-      })),
-    );
-    if (templateHoleRows.length) {
-      const { error } = await supabase.from("course_template_holes").insert(templateHoleRows);
-      if (error) throw error;
+      const refreshedState = await loadRemoteState();
+      notifySubscribers();
+      return refreshedState;
+    } finally {
+      isPersisting = false;
+      if (needsRefreshAfterPersist) {
+        needsRefreshAfterPersist = false;
+        const refreshedState = await loadRemoteState().catch(() => null);
+        if (refreshedState) {
+          notifySubscribers();
+        }
+      }
     }
-
-    return nextState;
   }
 
   async function bootstrap() {
@@ -428,6 +446,10 @@
         "postgres_changes",
         { event: "*", schema: "public", table },
         async () => {
+          if (isPersisting) {
+            needsRefreshAfterPersist = true;
+            return;
+          }
           await bootstrap();
           notifySubscribers();
         },

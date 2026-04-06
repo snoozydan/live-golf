@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ state, tournament, selectedTournamentId, getFreshState, rerender, setMessage, replaceState, setDirty }) {
+  renderContent({ state, tournament, selectedTournamentId, getFreshState, runBusyAction, rerender, setMessage, replaceState, setDirty }) {
     const tournamentNameInput = document.getElementById("tournament-name-input");
     const courseTemplateSelect = document.getElementById("course-template-select");
     const courseNameInput = document.getElementById("course-name-input");
@@ -85,42 +85,46 @@ AdminCommon.initAdminPage({
     };
 
     setLiveButton.onclick = async () => {
-      try {
-        const baseState = await getFreshState();
-        let nextState = TournamentStore.setLeaderboardTournament(baseState, liveTournamentSelect.value);
-        if (window.AppData?.enabled()) {
-          nextState = await window.AppData.persistState(nextState);
+      await runBusyAction(setLiveButton, "Updating...", async () => {
+        try {
+          const baseState = await getFreshState();
+          let nextState = TournamentStore.setLeaderboardTournament(baseState, liveTournamentSelect.value);
+          if (window.AppData?.enabled()) {
+            nextState = await window.AppData.persistState(nextState);
+          }
+          replaceState(nextState);
+          setDirty(false);
+          setMessage("Updated live leaderboard tournament.");
+          await rerender(true);
+        } catch (error) {
+          console.error("Set live leaderboard failed", error);
+          setMessage("Could not update the live leaderboard tournament. Please try again.");
         }
-        replaceState(nextState);
-        setDirty(false);
-        setMessage("Updated live leaderboard tournament.");
-        await rerender(true);
-      } catch (error) {
-        console.error("Set live leaderboard failed", error);
-        setMessage("Could not update the live leaderboard tournament. Please try again.");
-      }
+      });
     };
 
     saveButton.onclick = async () => {
-      try {
-        let nextState = await getFreshState();
+      await runBusyAction(saveButton, "Saving...", async () => {
+        try {
+          let nextState = await getFreshState();
 
-        if (selectedCourseTemplateId) {
-          nextState = TournamentStore.applyCourseTemplate(nextState, selectedTournamentId, selectedCourseTemplateId);
-        }
+          if (selectedCourseTemplateId) {
+            nextState = TournamentStore.applyCourseTemplate(nextState, selectedTournamentId, selectedCourseTemplateId);
+          }
 
-        nextState = TournamentStore.updateTournamentSettings(nextState, selectedTournamentId, draftSettings);
-        if (window.AppData?.enabled()) {
-          nextState = await window.AppData.persistState(nextState);
+          nextState = TournamentStore.updateTournamentSettings(nextState, selectedTournamentId, draftSettings);
+          if (window.AppData?.enabled()) {
+            nextState = await window.AppData.persistState(nextState);
+          }
+          replaceState(nextState);
+          setDirty(false);
+          setMessage("Saved settings changes.");
+          await rerender(true);
+        } catch (error) {
+          console.error("Save settings failed", error);
+          setMessage("Could not save settings changes. Please try again.");
         }
-        replaceState(nextState);
-        setDirty(false);
-        setMessage("Saved settings changes.");
-        await rerender(true);
-      } catch (error) {
-        console.error("Save settings failed", error);
-        setMessage("Could not save settings changes. Please try again.");
-      }
+      });
     };
 
     clearScoresButton.onclick = async () => {
@@ -128,18 +132,20 @@ AdminCommon.initAdminPage({
         `Clear all scores for ${tournament?.tournamentName || "this tournament"}? Players and course settings will stay.`,
       );
       if (!confirmed) return;
-      try {
-        let nextState = window.AppData?.enabled()
-          ? await window.AppData.clearTournamentScores(selectedTournamentId)
-          : TournamentStore.clearTournamentScores(await getFreshState(), selectedTournamentId);
-        replaceState(nextState);
-        setDirty(false);
-        setMessage("Cleared all scores for selected tournament.");
-        await rerender(true);
-      } catch (error) {
-        console.error("Clear scores failed", error);
-        setMessage("Could not clear scores for this tournament. Please try again.");
-      }
+      await runBusyAction(clearScoresButton, "Clearing...", async () => {
+        try {
+          let nextState = window.AppData?.enabled()
+            ? await window.AppData.clearTournamentScores(selectedTournamentId)
+            : TournamentStore.clearTournamentScores(await getFreshState(), selectedTournamentId);
+          replaceState(nextState);
+          setDirty(false);
+          setMessage("Cleared all scores for selected tournament.");
+          await rerender(true);
+        } catch (error) {
+          console.error("Clear scores failed", error);
+          setMessage("Could not clear scores for this tournament. Please try again.");
+        }
+      });
     };
   },
 });

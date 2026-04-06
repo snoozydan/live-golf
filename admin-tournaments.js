@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ state, tournament, selectedTournamentId, getFreshState, rerender, setMessage, replaceState, setDirty }) {
+  renderContent({ state, tournament, selectedTournamentId, getFreshState, runBusyAction, rerender, setMessage, replaceState, setDirty }) {
     const liveTournamentSelect = document.getElementById("live-tournament-select");
     const newTournamentNameInput = document.getElementById("new-tournament-name-input");
     const newCourseNameInput = document.getElementById("new-course-name-input");
@@ -23,66 +23,72 @@ AdminCommon.initAdminPage({
     newTournamentCourseTemplateSelect.innerHTML = `<option value="">Use selected tournament course</option>${courseOptions}`;
 
     setLiveButton.onclick = async () => {
-      try {
-        const baseState = await getFreshState();
-        let nextState = TournamentStore.setLeaderboardTournament(baseState, liveTournamentSelect.value);
-        if (window.AppData?.enabled()) {
-          nextState = await window.AppData.persistState(nextState);
+      await runBusyAction(setLiveButton, "Updating...", async () => {
+        try {
+          const baseState = await getFreshState();
+          let nextState = TournamentStore.setLeaderboardTournament(baseState, liveTournamentSelect.value);
+          if (window.AppData?.enabled()) {
+            nextState = await window.AppData.persistState(nextState);
+          }
+          replaceState(nextState);
+          setMessage("Updated live leaderboard tournament.");
+          await rerender(true);
+        } catch (error) {
+          console.error("Set live tournament failed", error);
+          setMessage("Could not update the live leaderboard tournament. Please try again.");
         }
-        replaceState(nextState);
-        setMessage("Updated live leaderboard tournament.");
-        await rerender(true);
-      } catch (error) {
-        console.error("Set live tournament failed", error);
-        setMessage("Could not update the live leaderboard tournament. Please try again.");
-      }
+      });
     };
 
     createTournamentButton.onclick = async () => {
-      try {
-        const baseState = await getFreshState();
-        let nextState = TournamentStore.createTournamentFromAdmin(baseState, {
-          tournamentName: newTournamentNameInput.value.trim() || "New Tournament",
-          courseName: newCourseNameInput.value.trim() || tournament?.courseName || "Course Name",
-          courseTemplateId: newTournamentCourseTemplateSelect.value || "",
-          status: "upcoming",
-          copyFromTournamentId: selectedTournamentId,
-        });
-        if (window.AppData?.enabled()) {
-          nextState = await window.AppData.persistState(nextState);
+      await runBusyAction(createTournamentButton, "Creating...", async () => {
+        try {
+          const baseState = await getFreshState();
+          let nextState = TournamentStore.createTournamentFromAdmin(baseState, {
+            tournamentName: newTournamentNameInput.value.trim() || "New Tournament",
+            courseName: newCourseNameInput.value.trim() || tournament?.courseName || "Course Name",
+            courseTemplateId: newTournamentCourseTemplateSelect.value || "",
+            status: "upcoming",
+            copyFromTournamentId: selectedTournamentId,
+          });
+          if (window.AppData?.enabled()) {
+            nextState = await window.AppData.persistState(nextState);
+          }
+          replaceState(nextState);
+          newTournamentNameInput.value = "";
+          newCourseNameInput.value = "";
+          newTournamentCourseTemplateSelect.value = "";
+          setDirty(false);
+          setMessage("Created new tournament.");
+          await rerender(true);
+        } catch (error) {
+          console.error("Create tournament failed", error);
+          setMessage("Could not create the tournament. Please try again.");
         }
-        replaceState(nextState);
-        newTournamentNameInput.value = "";
-        newCourseNameInput.value = "";
-        newTournamentCourseTemplateSelect.value = "";
-        setDirty(false);
-        setMessage("Created new tournament.");
-        await rerender(true);
-      } catch (error) {
-        console.error("Create tournament failed", error);
-        setMessage("Could not create the tournament. Please try again.");
-      }
+      });
     };
 
     duplicateTournamentButton.onclick = async () => {
       if (!selectedTournamentId) return;
-      try {
-        const baseState = await getFreshState();
-        let nextState = TournamentStore.duplicateTournament(baseState, selectedTournamentId, {
-          tournamentName: `${tournament?.tournamentName || "Tournament"} Copy`,
-          courseName: tournament?.courseName || "Course Name",
-          status: "upcoming",
-        });
-        if (window.AppData?.enabled()) {
-          nextState = await window.AppData.persistState(nextState);
+      await runBusyAction(duplicateTournamentButton, "Duplicating...", async () => {
+        try {
+          const baseState = await getFreshState();
+          let nextState = TournamentStore.duplicateTournament(baseState, selectedTournamentId, {
+            tournamentName: `${tournament?.tournamentName || "Tournament"} Copy`,
+            courseName: tournament?.courseName || "Course Name",
+            status: "upcoming",
+          });
+          if (window.AppData?.enabled()) {
+            nextState = await window.AppData.persistState(nextState);
+          }
+          replaceState(nextState);
+          setMessage("Duplicated tournament.");
+          await rerender(true);
+        } catch (error) {
+          console.error("Duplicate tournament failed", error);
+          setMessage("Could not duplicate the tournament. Please try again.");
         }
-        replaceState(nextState);
-        setMessage("Duplicated tournament.");
-        await rerender(true);
-      } catch (error) {
-        console.error("Duplicate tournament failed", error);
-        setMessage("Could not duplicate the tournament. Please try again.");
-      }
+      });
     };
 
     deleteTournamentButton.onclick = async () => {
@@ -93,19 +99,21 @@ AdminCommon.initAdminPage({
       }
       const confirmed = window.confirm(`Delete ${tournament?.tournamentName || "this tournament"}?`);
       if (!confirmed) return;
-      try {
-        const baseState = await getFreshState();
-        let nextState = TournamentStore.deleteTournament(baseState, selectedTournamentId);
-        if (window.AppData?.enabled()) {
-          nextState = await window.AppData.persistState(nextState);
+      await runBusyAction(deleteTournamentButton, "Deleting...", async () => {
+        try {
+          const baseState = await getFreshState();
+          let nextState = TournamentStore.deleteTournament(baseState, selectedTournamentId);
+          if (window.AppData?.enabled()) {
+            nextState = await window.AppData.persistState(nextState);
+          }
+          replaceState(nextState);
+          setMessage("Deleted tournament.");
+          await rerender(true);
+        } catch (error) {
+          console.error("Delete tournament failed", error);
+          setMessage("Could not delete the tournament. Please try again.");
         }
-        replaceState(nextState);
-        setMessage("Deleted tournament.");
-        await rerender(true);
-      } catch (error) {
-        console.error("Delete tournament failed", error);
-        setMessage("Could not delete the tournament. Please try again.");
-      }
+      });
     };
   },
 });

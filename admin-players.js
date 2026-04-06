@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ state, tournament, selectedTournamentId, getFreshState, rerender, setMessage, replaceState, setDirty }) {
+  renderContent({ state, tournament, selectedTournamentId, getFreshState, runBusyAction, rerender, setMessage, replaceState, setDirty }) {
     const newPlayerNameInput = document.getElementById("new-player-name-input");
     const newPlayerCodeInput = document.getElementById("new-player-code-input");
     const newPlayerFlightInput = document.getElementById("new-player-flight-input");
@@ -166,26 +166,28 @@ AdminCommon.initAdminPage({
         seenCodes.add(code);
       }
 
-      try {
-        const baseState = await getFreshState();
-        let nextState = TournamentStore.replaceTournamentPlayers(
-          baseState,
-          selectedTournamentId,
-          draftPlayers,
-        );
+      await runBusyAction(saveButton, "Saving...", async () => {
+        try {
+          const baseState = await getFreshState();
+          let nextState = TournamentStore.replaceTournamentPlayers(
+            baseState,
+            selectedTournamentId,
+            draftPlayers,
+          );
 
-        if (window.AppData?.enabled()) {
-          nextState = await window.AppData.persistState(nextState);
+          if (window.AppData?.enabled()) {
+            nextState = await window.AppData.persistState(nextState);
+          }
+
+          replaceState(nextState);
+          setDirty(false);
+          setMessage("Saved player changes.");
+          await rerender(true);
+        } catch (error) {
+          console.error("Player save failed", error);
+          setMessage("Could not save player changes. Please try again.");
         }
-
-        replaceState(nextState);
-        setDirty(false);
-        setMessage("Saved player changes.");
-        await rerender(true);
-      } catch (error) {
-        console.error("Player save failed", error);
-        setMessage("Could not save player changes. Please try again.");
-      }
+      });
     };
 
     renderPlayers();

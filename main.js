@@ -69,7 +69,7 @@ function scoreTone(value) {
 }
 
 function progressScoreLabel(player, value) {
-  return player.completed === 0 ? "-" : scoreLabel(value);
+  return scoreLabel(value);
 }
 
 function currentTournament() {
@@ -213,7 +213,7 @@ function renderHeaderMetrics() {
             </div>
             <div class="snapshot-meta">Thru ${player.thru}</div>
           </div>
-          <div class="snapshot-score">${player.completed === 0 ? "-" : scoreLabel(player.netToPar)}</div>
+          <div class="snapshot-score">${scoreLabel(player.netToPar)}</div>
         </div>
       `,
     )

@@ -340,7 +340,6 @@
     let completed = 0;
     let gross = 0;
     let parPlayed = 0;
-    let received = 0;
     let lastScoredHole = 0;
 
     player.scores.forEach((score, index) => {
@@ -352,12 +351,11 @@
       lastScoredHole = index + 1;
       gross += Number(score);
       parPlayed += course[index].par;
-      received += allocation[index].strokes;
     });
 
-    const net = gross - received;
+    const net = gross - player.handicap;
     const grossToPar = gross - parPlayed;
-    const netToPar = net - parPlayed;
+    const netToPar = grossToPar - player.handicap;
 
     return {
       ...player,
@@ -379,8 +377,6 @@
     }
 
     const computed = tournament.players.map((player) => computePlayer(player, tournament.course));
-    const allPlayersUnstarted = computed.every((player) => player.completed === 0);
-
     function teeTimeMinutes(value) {
       const match = String(value || "")
         .trim()
@@ -407,25 +403,6 @@
     }
 
     computed.sort((left, right) => {
-      if (left.completed === 0 && right.completed > 0) {
-        return 1;
-      }
-      if (left.completed > 0 && right.completed === 0) {
-        return -1;
-      }
-
-      if (allPlayersUnstarted || (left.completed === 0 && right.completed === 0)) {
-        const teeDiff = teeTimeMinutes(left.teeTime) - teeTimeMinutes(right.teeTime);
-        if (teeDiff !== 0) {
-          return teeDiff;
-        }
-
-        const firstNameDiff = firstName(left.name).localeCompare(firstName(right.name));
-        if (firstNameDiff !== 0) {
-          return firstNameDiff;
-        }
-      }
-
       if (left.netToPar !== right.netToPar) {
         return left.netToPar - right.netToPar;
       }
@@ -437,6 +414,14 @@
       }
       if (left.completed !== right.completed) {
         return right.completed - left.completed;
+      }
+      const teeDiff = teeTimeMinutes(left.teeTime) - teeTimeMinutes(right.teeTime);
+      if (teeDiff !== 0) {
+        return teeDiff;
+      }
+      const firstNameDiff = firstName(left.name).localeCompare(firstName(right.name));
+      if (firstNameDiff !== 0) {
+        return firstNameDiff;
       }
       return left.name.localeCompare(right.name);
     });

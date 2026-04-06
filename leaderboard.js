@@ -150,7 +150,7 @@ async function renderLeaderboardPage() {
   leaderboardList.innerHTML = ranked
     .map(
       (player, index) => {
-        const netDisplay = player.completed === 0 ? "-" : scoreLabel(player.netToPar);
+        const netDisplay = scoreLabel(player.netToPar);
         const grossDisplay = player.completed === 0 ? "-" : scoreLabel(player.grossToPar);
         const statusText = playerStatus(player);
         const movement = movementMarkup(player, index, previousPositions);
@@ -172,7 +172,7 @@ async function renderLeaderboardPage() {
             </div>
             <div class="leaderboard-metric">
               <span class="metric-label">Tot</span>
-              <span class="metric-value ${player.completed === 0 ? "" : scoreTone(player.netToPar)}">${netDisplay}</span>
+              <span class="metric-value ${scoreTone(player.netToPar)}">${netDisplay}</span>
             </div>
             <div class="leaderboard-metric">
               <span class="metric-label">Gross</span>
@@ -201,15 +201,14 @@ async function renderLeaderboardPage() {
                 ${player.scores
                   .map((score, index) => {
                     const hole = tournament.course[index];
-                    const strokes = player.allocation[index].strokes;
-                    const netScore = score === null ? null : Math.max(1, Number(score) - strokes);
+                    const netScore = score === null ? null : Number(score);
                     const delta = score === null ? null : Number(score) - hole.par;
                     return `
                       <div class="leaderboard-hole-card ${score === null ? "score-missing" : `score-entered ${grossResultClass(delta)}`}">
                         <div class="hole-card-title">Hole ${hole.hole}</div>
                         <div class="hole-card-line">Par ${hole.par} · SI ${hole.strokeIndex}</div>
                         <div class="hole-card-value">${score === null ? "-" : `${score} gross`}</div>
-                        <div class="hole-card-line">${score === null ? "No score yet" : `${grossResultLabel(delta)} · Net ${netScore}`}</div>
+                        <div class="hole-card-line">${score === null ? "No score yet" : `${grossResultLabel(delta)} · Gross ${netScore}`}</div>
                       </div>
                     `;
                   })
@@ -244,21 +243,11 @@ async function renderLeaderboardPage() {
           <div class="player-card-header">
             <div>
               <h3>${player.name}</h3>
-              <div class="card-subline">${player.completed === 0 ? `${playerGroupMap.get(player.id) || "No group"} · HCP ${player.handicap}` : `${playerGroupMap.get(player.id) || "No group"} · HCP ${player.handicap}`}</div>
+              <div class="card-subline">${playerGroupMap.get(player.id) || "No group"} · HCP ${player.handicap}</div>
             </div>
-            <div class="score-badge ${player.completed === 0 ? "" : scoreTone(player.netToPar)}">${player.completed === 0 ? "-" : scoreLabel(player.netToPar)}</div>
+            <div class="score-badge ${scoreTone(player.netToPar)}">${scoreLabel(player.netToPar)}</div>
           </div>
-          <div class="mini-hole-grid">
-            ${player.allocation
-              .map((item, index) => {
-                const classes = ["mini-hole", item.strokes > 0 ? "stroke-hole" : "non-stroke-hole"]
-                  .filter(Boolean)
-                  .join(" ");
-                const label = item.strokes > 0 ? `+${item.strokes}` : "0";
-                return `<div class="${classes}" title="Hole ${item.hole} · ${tournament.course[index].yardage} yds · SI ${item.strokeIndex}"><span class="mini-hole-number">${item.hole}</span>:<span class="mini-hole-value">${label}</span></div>`;
-              })
-              .join("")}
-          </div>
+          <div class="detail-pill">Handicap start ${scoreLabel(-player.handicap)}</div>
         </article>
       `,
     )

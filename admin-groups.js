@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ tournament, selectedTournamentId, getFreshState, rerender, setMessage, replaceState, setDirty }) {
+  renderContent({ tournament, selectedTournamentId, getFreshState, runBusyAction, rerender, setMessage, replaceState, setDirty }) {
     const saveButton = document.getElementById("save-button");
     const addGroupButton = document.getElementById("add-group-button");
     const groupList = document.getElementById("admin-group-list");
@@ -131,20 +131,22 @@ AdminCommon.initAdminPage({
         }
         seen.add(code);
       }
-      try {
-        const baseState = await getFreshState();
-        let nextState = TournamentStore.updateTournamentGroups(baseState, selectedTournamentId, draftGroups);
-        if (window.AppData?.enabled()) {
-          nextState = await window.AppData.persistState(nextState);
+      await runBusyAction(saveButton, "Saving...", async () => {
+        try {
+          const baseState = await getFreshState();
+          let nextState = TournamentStore.updateTournamentGroups(baseState, selectedTournamentId, draftGroups);
+          if (window.AppData?.enabled()) {
+            nextState = await window.AppData.persistState(nextState);
+          }
+          replaceState(nextState);
+          setDirty(false);
+          setMessage("Saved group changes.");
+          await rerender(true);
+        } catch (error) {
+          console.error("Save group changes failed", error);
+          setMessage("Could not save group changes. Please try again.");
         }
-        replaceState(nextState);
-        setDirty(false);
-        setMessage("Saved group changes.");
-        await rerender(true);
-      } catch (error) {
-        console.error("Save group changes failed", error);
-        setMessage("Could not save group changes. Please try again.");
-      }
+      });
     };
 
     renderGroups();

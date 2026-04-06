@@ -34,6 +34,7 @@
     let adminUnlocked = window.localStorage.getItem(ADMIN_SESSION_KEY) === "unlocked";
     let selectedTournamentId = getSelectedTournamentId(state);
     let hasUnsavedChanges = false;
+    const busyButtons = new WeakMap();
 
     function currentTournament() {
       return TournamentStore.getTournament(state, selectedTournamentId);
@@ -63,6 +64,30 @@
       }
 
       return window.confirm("You have unsaved admin changes. Leave this screen without saving?");
+    }
+
+    async function runBusyAction(button, busyLabel, action) {
+      if (!button) {
+        return action();
+      }
+
+      if (busyButtons.get(button)) {
+        return null;
+      }
+
+      busyButtons.set(button, true);
+      const originalLabel = button.dataset.originalLabel || button.textContent;
+      button.dataset.originalLabel = originalLabel;
+      button.disabled = true;
+      button.textContent = busyLabel;
+
+      try {
+        return await action();
+      } finally {
+        busyButtons.delete(button);
+        button.disabled = false;
+        button.textContent = originalLabel;
+      }
     }
 
     function renderWorkspace() {
@@ -133,6 +158,7 @@
         async getFreshState() {
           return window.AppData?.enabled() ? await window.AppData.bootstrap() : TournamentStore.loadState();
         },
+        runBusyAction,
         rerender,
         setMessage,
         setDirty,

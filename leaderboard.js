@@ -40,9 +40,8 @@ function playerStatus(player) {
 }
 
 function playerMetaText(player, groupLabel) {
-  const statusText = playerStatus(player);
-  const teeOrStatus = player.completed === 0 ? `Tee ${player.teeTime || "-"}` : statusText;
-  return `${groupLabel || "No group"} · HCP ${player.handicap} · ${teeOrStatus}`;
+  const teeText = player.completed === 0 ? ` · Tee ${player.teeTime || "-"}` : "";
+  return `${groupLabel || "No group"} · HCP ${player.handicap}${teeText}`;
 }
 
 function grossResultLabel(delta) {
@@ -137,7 +136,7 @@ async function renderLeaderboardPage() {
               </div>
             </div>
             <div class="leaderboard-metric">
-              <span class="metric-label">Net</span>
+              <span class="metric-label">Tot</span>
               <span class="metric-value ${player.completed === 0 ? "" : scoreTone(player.netToPar)}">${netDisplay}</span>
             </div>
             <div class="leaderboard-metric">
@@ -145,20 +144,12 @@ async function renderLeaderboardPage() {
               <span class="metric-value ${player.completed === 0 ? "" : scoreTone(player.grossToPar)}">${grossDisplay}</span>
             </div>
             <div class="leaderboard-metric">
-              <span class="metric-label">Status</span>
-              <span class="metric-value">${player.completed === 18 ? "F" : player.completed === 0 ? "-" : player.completed}</span>
-            </div>
-            <div class="leaderboard-metric">
-              <span class="metric-label">Gross</span>
-              <span class="metric-value">${player.gross || "-"}</span>
-            </div>
-            <div class="leaderboard-metric">
-              <span class="metric-label">Net Total</span>
-              <span class="metric-value">${player.net || "-"}</span>
+              <span class="metric-label">Thru</span>
+              <span class="metric-value">${player.thru}</span>
             </div>
             <div class="leaderboard-metric">
               <span class="metric-label">Tee Time</span>
-              <span class="metric-value">${player.teeTime}</span>
+              <span class="metric-value">${player.completed === 0 ? player.teeTime || "-" : "-"}</span>
             </div>
           </div>
           ${
@@ -166,12 +157,10 @@ async function renderLeaderboardPage() {
               ? `
             <div class="leaderboard-detail">
               <div class="leaderboard-detail-summary">
-                <div class="detail-pill">Status ${statusText}</div>
+                <div class="detail-pill">Tot ${netDisplay}</div>
+                <div class="detail-pill">Gross ${grossDisplay}</div>
+                <div class="detail-pill">Thru ${player.thru}</div>
                 ${player.completed === 0 ? `<div class="detail-pill">Tee ${player.teeTime || "-"}</div>` : ""}
-                <div class="detail-pill">Gross ${scoreLabel(player.grossToPar)}</div>
-                <div class="detail-pill">Net ${scoreLabel(player.netToPar)}</div>
-                <div class="detail-pill">Total Gross ${player.gross || "-"}</div>
-                <div class="detail-pill">Total Net ${player.net || "-"}</div>
               </div>
               <div class="leaderboard-hole-grid">
                 ${player.scores
@@ -220,7 +209,7 @@ async function renderLeaderboardPage() {
           <div class="player-card-header">
             <div>
               <h3>${player.name}</h3>
-              <div class="card-subline">${player.completed === 0 ? `${playerGroupMap.get(player.id) || "No group"} · Tee ${player.teeTime || "-"}` : `${playerGroupMap.get(player.id) || "No group"} · ${playerStatus(player)}`}</div>
+              <div class="card-subline">${player.completed === 0 ? `${playerGroupMap.get(player.id) || "No group"} · Tee ${player.teeTime || "-"}` : `${playerGroupMap.get(player.id) || "No group"} · Thru ${player.thru}`}</div>
             </div>
             <div class="score-badge ${player.completed === 0 ? "" : scoreTone(player.netToPar)}">${player.completed === 0 ? "-" : scoreLabel(player.netToPar)}</div>
           </div>

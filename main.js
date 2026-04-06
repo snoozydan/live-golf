@@ -45,6 +45,10 @@ function sessionKey(tournamentId) {
   return `fairway-live-active-group-${tournamentId}`;
 }
 
+function holeSessionKey(tournamentId, groupId) {
+  return `fairway-live-active-hole-${tournamentId}-${groupId}`;
+}
+
 function scoreLabel(value) {
   if (value === null || value === undefined) {
     return "-";
@@ -81,6 +85,18 @@ function saveActiveGroupSession(groupId) {
   window.localStorage.setItem(key, groupId);
 }
 
+function saveSelectedHoleSession(holeNumber) {
+  const tournament = currentTournament();
+  if (!tournament || !activeGroupId) return;
+  window.localStorage.setItem(holeSessionKey(tournament.id, activeGroupId), String(holeNumber));
+}
+
+function clearSelectedHoleSession(groupId) {
+  const tournament = currentTournament();
+  if (!tournament || !groupId) return;
+  window.localStorage.removeItem(holeSessionKey(tournament.id, groupId));
+}
+
 function restoreActiveGroupSession() {
   const tournament = currentTournament();
   if (!tournament) return;
@@ -92,6 +108,8 @@ function restoreActiveGroupSession() {
     return;
   }
   activeGroupId = group.id;
+  const savedHole = Number(window.localStorage.getItem(holeSessionKey(tournament.id, group.id)));
+  selectedHoleNumber = savedHole >= 1 && savedHole <= 18 ? savedHole : 1;
   loginMessage.textContent = `${group.name} is still signed in on this device.`;
 }
 
@@ -267,6 +285,7 @@ function renderActiveGroup() {
 
   const group = tournament.groups.find((entry) => entry.id === activeGroupId);
   if (!group) {
+    clearSelectedHoleSession(activeGroupId);
     activeGroupId = null;
     saveActiveGroupSession(null);
     renderActiveGroup();
@@ -384,6 +403,7 @@ playerScoreForm.addEventListener("submit", async (event) => {
     } else {
       selectedHoleNumber = 18;
     }
+    saveSelectedHoleSession(selectedHoleNumber);
 
     scoreSaveMessage.textContent = `Scores for hole ${savedHoleNumber} have been saved.`;
     scoreSaveMessage.classList.remove("hidden");
@@ -398,8 +418,9 @@ playerScoreForm.addEventListener("submit", async (event) => {
   }
 });
 
-playerHoleSelect.addEventListener("change", async () => {
+  playerHoleSelect.addEventListener("change", async () => {
   selectedHoleNumber = Number(playerHoleSelect.value);
+  saveSelectedHoleSession(selectedHoleNumber);
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
@@ -410,6 +431,7 @@ previousHoleButton.addEventListener("click", async () => {
   const current = selectedHoleNumber;
   if (current <= 1) return;
   selectedHoleNumber = current - 1;
+  saveSelectedHoleSession(selectedHoleNumber);
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
@@ -420,6 +442,7 @@ nextHoleButton.addEventListener("click", async () => {
   const current = selectedHoleNumber;
   if (current >= 18) return;
   selectedHoleNumber = current + 1;
+  saveSelectedHoleSession(selectedHoleNumber);
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
@@ -427,6 +450,7 @@ nextHoleButton.addEventListener("click", async () => {
 });
 
 playerSignoutButton.addEventListener("click", async () => {
+  clearSelectedHoleSession(activeGroupId);
   activeGroupId = null;
   selectedHoleNumber = 1;
   saveActiveGroupSession(null);

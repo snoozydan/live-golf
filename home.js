@@ -49,7 +49,7 @@ async function renderHomePage() {
   if (!tournament) {
     homeEventName.textContent = "No live tournament";
     homeCourseName.textContent = "Choose one in admin";
-    homeDescription.textContent = "Set a live tournament in admin to show your event on the home page.";
+    homeDescription.textContent = "Open scoring, follow the live leaderboard, and keep tournament day moving from one simple home page.";
     homeAboutCopy.textContent = "Add tournament details in Admin Settings when you're ready.";
     homeLiveStatus.textContent = "Waiting";
     homeLiveMeta.textContent = "No tournament selected";
@@ -65,7 +65,7 @@ async function renderHomePage() {
 
   homeEventName.textContent = tournament.tournamentName;
   homeCourseName.textContent = tournament.courseName;
-  homeDescription.textContent = tournament.homeDescription;
+  homeDescription.textContent = "Open scoring, follow the live leaderboard, and keep tournament day moving from one simple home page.";
   homeAboutCopy.textContent = tournament.homeDescription;
   homeLiveStatus.textContent = tournament.status === "completed" ? "Final" : tournament.status === "upcoming" ? "Upcoming" : "Live";
   homeLiveMeta.textContent = `${tournament.players.length} players · ${tournament.groups.length} groups · ${postedScores} scores posted`;

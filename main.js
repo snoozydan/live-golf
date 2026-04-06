@@ -114,6 +114,22 @@ function clearGroupDrafts(groupId) {
   });
 }
 
+function resetActiveGroupToHoleOneIfScoresCleared() {
+  const tournament = currentTournament();
+  if (!tournament || !activeGroupId) {
+    return;
+  }
+
+  if (TournamentStore.totalPostedScores(tournament) !== 0) {
+    return;
+  }
+
+  clearGroupDrafts(activeGroupId);
+  clearSelectedHoleSession(activeGroupId);
+  selectedHoleNumber = 1;
+  scoreSaveMessage.classList.add("hidden");
+}
+
 function draftStatusText(groupId, holeNumber) {
   const draft = scoreDrafts.get(scoreDraftKey(groupId, holeNumber));
   if (!draft) {
@@ -568,6 +584,7 @@ window.addEventListener("storage", () => {
     activeGroupId = null;
     restoreActiveGroupSession();
   }
+  resetActiveGroupToHoleOneIfScoresCleared();
   rerender(false);
 });
 
@@ -579,6 +596,7 @@ window.AppData?.subscribe(async () => {
     activeGroupId = null;
     restoreActiveGroupSession();
   }
+  resetActiveGroupToHoleOneIfScoresCleared();
   await rerender(false);
 });
 

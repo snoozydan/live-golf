@@ -201,6 +201,10 @@ select {
   max-width: 64ch;
 }
 
+.home-rich-text {
+  white-space: pre-line;
+}
+
 .hero-course {
   margin: 12px 0 0;
   color: var(--accent);

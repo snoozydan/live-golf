@@ -65,6 +65,10 @@ function scoreTone(value) {
   return "score-even";
 }
 
+function progressScoreLabel(player, value) {
+  return player.completed === 0 ? "-" : scoreLabel(value);
+}
+
 function currentTournament() {
   return TournamentStore.getLiveTournament(state);
 }
@@ -212,8 +216,8 @@ function renderGroupCards(group, tournament) {
         <article class="score-hole-card score-entered">
           <div class="hole-card-title">${player.name}</div>
           <div class="hole-card-line">${player.division} · HCP ${player.handicap}</div>
-          <div class="hole-card-value">Gross ${scoreLabel(player.grossToPar)}</div>
-          <div class="hole-card-line">Net ${scoreLabel(player.netToPar)}</div>
+          <div class="hole-card-value">Gross ${progressScoreLabel(player, player.grossToPar)}</div>
+          <div class="hole-card-line">Net ${progressScoreLabel(player, player.netToPar)}</div>
         </article>
       `,
     )
@@ -251,7 +255,7 @@ function renderGroupCards(group, tournament) {
         <article class="group-scorecard-player">
           <div class="group-scorecard-playerhead">
             <div class="player-name">${player.name}</div>
-            <div class="card-subline">Gross ${scoreLabel(player.grossToPar)} · Net ${scoreLabel(player.netToPar)} · Total ${player.gross || "-"}</div>
+            <div class="card-subline">Gross ${progressScoreLabel(player, player.grossToPar)} · Net ${progressScoreLabel(player, player.netToPar)} · Total ${player.completed === 0 ? "-" : player.gross}</div>
           </div>
           <div class="group-scorecard-halves">
             <div>

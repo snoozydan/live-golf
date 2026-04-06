@@ -138,6 +138,33 @@
     };
   }
 
+  function mergePreservedTournamentFields(state, preservedTournament) {
+    if (!state || !preservedTournament) {
+      return state;
+    }
+
+    const merged = {
+      ...state,
+      tournaments: (state.tournaments || []).map((tournament) =>
+        tournament.id === preservedTournament.id
+          ? {
+              ...tournament,
+              tournamentName: preservedTournament.tournamentName,
+              courseName: preservedTournament.courseName,
+              homeDescription: preservedTournament.homeDescription,
+              leaderboardDescription: preservedTournament.leaderboardDescription,
+              status: preservedTournament.status,
+              course: preservedTournament.course,
+              groups: preservedTournament.groups,
+            }
+          : tournament,
+      ),
+    };
+
+    TournamentStore.saveState(merged);
+    return merged;
+  }
+
   async function loadRemoteState() {
     const supabase = getClient();
     if (!supabase) {
@@ -448,6 +475,8 @@
     needsRefreshAfterPersist = false;
 
     try {
+      const localState = TournamentStore.loadState();
+      const preservedTournament = TournamentStore.getTournament(localState, tournamentId);
       const deleteScores = await supabase.from("scores").delete().eq("tournament_id", tournamentId);
       if (deleteScores.error) throw deleteScores.error;
 
@@ -455,8 +484,9 @@
       if (deleteUpdates.error) throw deleteUpdates.error;
 
       const refreshedState = await loadRemoteState();
+      const mergedState = mergePreservedTournamentFields(refreshedState, preservedTournament);
       notifySubscribers();
-      return refreshedState;
+      return mergedState;
     } finally {
       isPersisting = false;
       if (needsRefreshAfterPersist) {

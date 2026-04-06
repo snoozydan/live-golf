@@ -4,6 +4,7 @@ AdminCommon.initAdminPage({
     const courseTemplateSelect = document.getElementById("course-template-select");
     const courseNameInput = document.getElementById("course-name-input");
     const tournamentStatusInput = document.getElementById("tournament-status-input");
+    const homeDescriptionInput = document.getElementById("home-description-input");
     const leaderboardDescriptionInput = document.getElementById("leaderboard-description-input");
     const liveTournamentSelect = document.getElementById("live-tournament-select");
     const setLiveButton = document.getElementById("set-live-button");
@@ -16,6 +17,7 @@ AdminCommon.initAdminPage({
     let draftSettings = {
       tournamentName: tournament?.tournamentName || "",
       courseName: tournament?.courseName || "",
+      homeDescription: tournament?.homeDescription || "",
       leaderboardDescription: tournament?.leaderboardDescription || "",
       status: tournament?.status || "upcoming",
     };
@@ -35,6 +37,7 @@ AdminCommon.initAdminPage({
     tournamentNameInput.value = draftSettings.tournamentName;
     courseNameInput.value = draftSettings.courseName;
     tournamentStatusInput.value = draftSettings.status;
+    homeDescriptionInput.value = draftSettings.homeDescription;
     leaderboardDescriptionInput.value = draftSettings.leaderboardDescription;
 
     tournamentNameInput.oninput = () => {
@@ -67,6 +70,11 @@ AdminCommon.initAdminPage({
     };
     tournamentStatusInput.onchange = () => {
       draftSettings.status = tournamentStatusInput.value;
+      setDirty(true);
+      setMessage("Unsaved settings changes.");
+    };
+    homeDescriptionInput.oninput = () => {
+      draftSettings.homeDescription = homeDescriptionInput.value;
       setDirty(true);
       setMessage("Unsaved settings changes.");
     };

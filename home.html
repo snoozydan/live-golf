@@ -23,7 +23,7 @@
         </nav>
       </header>
 
-      <section class="hero">
+      <section class="hero hero-home">
         <div class="hero-copy">
           <p class="eyebrow">Tournament Hub</p>
           <h2 id="home-event-name">Live Golf Scoring</h2>
@@ -34,16 +34,6 @@
           <div class="home-cta-row">
             <a class="primary-button home-link-button" href="./index.html">Open scoring</a>
             <a class="ghost-button home-link-button" href="./leaderboard.html">View leaderboard</a>
-          </div>
-        </div>
-        <div class="hero-card">
-          <p class="hero-card-label">Live Tournament</p>
-          <div class="home-live-summary">
-            <div class="home-live-scoreline">
-              <span class="stat-number" id="home-live-status">Live</span>
-              <span class="stat-label" id="home-live-meta">Waiting for tournament data</span>
-            </div>
-            <div id="home-leaders" class="snapshot-leaders"></div>
           </div>
         </div>
       </section>
@@ -58,36 +48,13 @@
           </div>
           <div class="home-stack">
             <div class="info-card">
-              <strong id="home-format-title">Net leaderboard</strong>
-              <div class="feed-meta">Players are ranked by net score, with gross available on the leaderboard for quick comparison.</div>
+              <strong id="home-live-status">Live</strong>
+              <div class="feed-meta" id="home-live-meta">Waiting for tournament data</div>
             </div>
             <div class="info-card">
-              <strong>How scoring works</strong>
-              <div class="feed-meta">One scorer per group enters scores hole by hole, and the live board updates as scores come in.</div>
+              <strong>About this event</strong>
+              <div class="feed-meta" id="home-about-copy">One scorer per group enters scores hole by hole, and the live board updates as scores come in.</div>
             </div>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="panel-kicker">Quick Start</p>
-              <h2>Where to go</h2>
-            </div>
-          </div>
-          <div class="home-action-list">
-            <a class="home-action-card" href="./index.html">
-              <span class="home-action-title">Scoring</span>
-              <span class="feed-meta">Enter group scores and move hole to hole.</span>
-            </a>
-            <a class="home-action-card" href="./leaderboard.html">
-              <span class="home-action-title">Leaderboard</span>
-              <span class="feed-meta">Follow the live net and gross standings.</span>
-            </a>
-            <a class="home-action-card" href="./admin.html">
-              <span class="home-action-title">Admin</span>
-              <span class="feed-meta">Manage tournaments, players, groups, and courses.</span>
-            </a>
           </div>
         </section>
 

@@ -101,6 +101,9 @@
       id: overrides.id || makeId("tournament"),
       tournamentName: overrides.tournamentName || "New Tournament",
       courseName: overrides.courseName || "Course Name",
+      homeDescription:
+        overrides.homeDescription ||
+        "Welcome players and guests. Use this page as the tournament hub for event details, scoring access, and the live leaderboard.",
       leaderboardDescription:
         overrides.leaderboardDescription ||
         "This page is built for display screens, staff tablets, or players who just want to follow the rankings as scores come in.",
@@ -201,6 +204,7 @@
       id: tournament.id || fallback.id,
       tournamentName: tournament.tournamentName || fallback.tournamentName,
       courseName: tournament.courseName || fallback.courseName,
+      homeDescription: tournament.homeDescription || fallback.homeDescription,
       leaderboardDescription: tournament.leaderboardDescription || fallback.leaderboardDescription,
       status: tournament.status || fallback.status,
       updatedAt: tournament.updatedAt || Date.now(),
@@ -566,6 +570,7 @@
       ...tournament,
       tournamentName: String(changes.tournamentName || "").trim() || tournament.tournamentName,
       courseName: String(changes.courseName || "").trim() || tournament.courseName,
+      homeDescription: String(changes.homeDescription || "").trim() || tournament.homeDescription,
       leaderboardDescription:
         String(changes.leaderboardDescription || "").trim() || tournament.leaderboardDescription,
       status: String(changes.status || "").trim() || tournament.status,
@@ -599,6 +604,10 @@
         courseTemplate?.name ||
         sourceTournament?.courseName ||
         "Course Name",
+      homeDescription:
+        String(details.homeDescription || "").trim() ||
+        sourceTournament?.homeDescription ||
+        "Welcome players and guests. Use this page as the tournament hub for event details, scoring access, and the live leaderboard.",
       leaderboardDescription:
         String(details.leaderboardDescription || "").trim() ||
         sourceTournament?.leaderboardDescription ||
@@ -659,6 +668,7 @@
     const duplicate = createTournament({
       tournamentName: String(details.tournamentName || "").trim() || `${source.tournamentName} Copy`,
       courseName: String(details.courseName || "").trim() || source.courseName,
+      homeDescription: source.homeDescription,
       leaderboardDescription: source.leaderboardDescription,
       status: details.status || "upcoming",
       course: source.course.map((hole) => ({ ...hole })),

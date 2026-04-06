@@ -1,9 +1,9 @@
 const homeEventName = document.getElementById("home-event-name");
 const homeCourseName = document.getElementById("home-course-name");
 const homeDescription = document.getElementById("home-description");
+const homeAboutCopy = document.getElementById("home-about-copy");
 const homeLiveStatus = document.getElementById("home-live-status");
 const homeLiveMeta = document.getElementById("home-live-meta");
-const homeLeaders = document.getElementById("home-leaders");
 const homeGroups = document.getElementById("home-groups");
 
 function homeScoreLabel(value) {
@@ -50,9 +50,9 @@ async function renderHomePage() {
     homeEventName.textContent = "No live tournament";
     homeCourseName.textContent = "Choose one in admin";
     homeDescription.textContent = "Set a live tournament in admin to show your event on the home page.";
+    homeAboutCopy.textContent = "Add tournament details in Admin Settings when you're ready.";
     homeLiveStatus.textContent = "Waiting";
     homeLiveMeta.textContent = "No tournament selected";
-    homeLeaders.innerHTML = `<div class="empty-state">No leaderboard data yet.</div>`;
     homeGroups.innerHTML = `<div class="empty-state">No groups available.</div>`;
     return;
   }
@@ -65,27 +65,10 @@ async function renderHomePage() {
 
   homeEventName.textContent = tournament.tournamentName;
   homeCourseName.textContent = tournament.courseName;
-  homeDescription.textContent = tournament.leaderboardDescription;
+  homeDescription.textContent = tournament.homeDescription;
+  homeAboutCopy.textContent = tournament.homeDescription;
   homeLiveStatus.textContent = tournament.status === "completed" ? "Final" : tournament.status === "upcoming" ? "Upcoming" : "Live";
   homeLiveMeta.textContent = `${tournament.players.length} players · ${tournament.groups.length} groups · ${postedScores} scores posted`;
-
-  homeLeaders.innerHTML = ranked
-    .slice(0, 3)
-    .map(
-      (player) => `
-        <div class="snapshot-row">
-          <div>
-            <div class="snapshot-name">
-              <span class="snapshot-place">T${String(player.rank).replace(/^T/, "")}</span>
-              <span>${player.name}</span>
-            </div>
-            <div class="snapshot-meta">${player.completed === 0 ? `Tee ${player.teeTime || "-"}` : `Thru ${player.thru}`}</div>
-          </div>
-          <div class="snapshot-score">${player.completed === 0 ? "-" : homeScoreLabel(player.netToPar)}</div>
-        </div>
-      `,
-    )
-    .join("");
 
   const groups = tournament.groups
     .slice()

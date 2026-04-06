@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Golf Scoring - Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Newsreader:opsz,wght@6..72,500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <nav class="topbar-nav">
+          <a class="nav-link active" href="./home.html">Home</a>
+          <a class="nav-link" href="./index.html">Scoring</a>
+          <a class="nav-link" href="./leaderboard.html">Leaderboard</a>
+          <a class="nav-link" href="./admin.html">Admin</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Tournament Hub</p>
+          <h2 id="home-event-name">Live Golf Scoring</h2>
+          <p class="hero-course" id="home-course-name">Follow today's event in one place</p>
+          <p class="hero-text" id="home-description">
+            Open scoring, follow the live leaderboard, and keep tournament day moving from one simple home page.
+          </p>
+          <div class="home-cta-row">
+            <a class="primary-button home-link-button" href="./index.html">Open scoring</a>
+            <a class="ghost-button home-link-button" href="./leaderboard.html">View leaderboard</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">Live Tournament</p>
+          <div class="home-live-summary">
+            <div class="home-live-scoreline">
+              <span class="stat-number" id="home-live-status">Live</span>
+              <span class="stat-label" id="home-live-meta">Waiting for tournament data</span>
+            </div>
+            <div id="home-leaders" class="snapshot-leaders"></div>
+          </div>
+        </div>
+      </section>
+
+      <main class="dashboard-grid">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">About</p>
+              <h2>Today's tournament</h2>
+            </div>
+          </div>
+          <div class="home-stack">
+            <div class="info-card">
+              <strong id="home-format-title">Net leaderboard</strong>
+              <div class="feed-meta">Players are ranked by net score, with gross available on the leaderboard for quick comparison.</div>
+            </div>
+            <div class="info-card">
+              <strong>How scoring works</strong>
+              <div class="feed-meta">One scorer per group enters scores hole by hole, and the live board updates as scores come in.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Quick Start</p>
+              <h2>Where to go</h2>
+            </div>
+          </div>
+          <div class="home-action-list">
+            <a class="home-action-card" href="./index.html">
+              <span class="home-action-title">Scoring</span>
+              <span class="feed-meta">Enter group scores and move hole to hole.</span>
+            </a>
+            <a class="home-action-card" href="./leaderboard.html">
+              <span class="home-action-title">Leaderboard</span>
+              <span class="feed-meta">Follow the live net and gross standings.</span>
+            </a>
+            <a class="home-action-card" href="./admin.html">
+              <span class="home-action-title">Admin</span>
+              <span class="feed-meta">Manage tournaments, players, groups, and courses.</span>
+            </a>
+          </div>
+        </section>
+
+        <section class="panel panel-wide">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Schedule</p>
+              <h2>Groups going out</h2>
+            </div>
+          </div>
+          <div id="home-groups" class="home-groups-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./supabase-config.js"></script>
+    <script src="./tournament-data.js"></script>
+    <script src="./supabase-sync.js"></script>
+    <script src="./home.js"></script>
+  </body>
+</html>

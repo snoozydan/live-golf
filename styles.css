@@ -216,6 +216,30 @@ select {
   color: rgba(246, 255, 249, 0.72);
 }
 
+.home-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.home-link-button {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-live-summary {
+  display: grid;
+  gap: 16px;
+}
+
+.home-live-scoreline {
+  display: grid;
+  gap: 6px;
+}
+
 .stat-number {
   display: block;
   font-size: 2rem;
@@ -423,6 +447,61 @@ button {
 .admin-settings-card {
   padding: 18px;
   color: var(--muted);
+}
+
+.home-stack,
+.home-action-list,
+.home-groups-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.home-action-card,
+.home-group-card {
+  border-radius: 20px;
+  border: 1px solid rgba(24, 36, 27, 0.06);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 18px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.home-action-card {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.home-action-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(28, 42, 33, 0.1);
+}
+
+.home-action-title {
+  display: block;
+  font-size: 1.02rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.home-group-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.home-group-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.home-group-player {
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(13, 107, 69, 0.08);
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .success-card {

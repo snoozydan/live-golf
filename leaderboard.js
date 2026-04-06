@@ -9,6 +9,16 @@ function movementStorageKey(tournamentId) {
   return `fairway-live-leaderboard-movement-${tournamentId}`;
 }
 
+function leaderboardSnapshotKey(tournament) {
+  if (!tournament) {
+    return "no-tournament";
+  }
+  const latestUpdate = tournament.updates
+    .slice()
+    .sort((left, right) => right.timestamp - left.timestamp)[0];
+  return latestUpdate ? `${latestUpdate.id}-${latestUpdate.timestamp}` : `no-updates-${tournament.id}`;
+}
+
 function scoreLabel(value) {
   if (value === null || value === undefined) {
     return "-";
@@ -61,19 +71,41 @@ function grossResultClass(delta) {
 
 function loadPreviousPositions(tournamentId) {
   try {
-    return JSON.parse(window.localStorage.getItem(movementStorageKey(tournamentId)) || "{}");
+    return JSON.parse(window.localStorage.getItem(movementStorageKey(tournamentId)) || '{"baseline":{},"current":{},"snapshotKey":""}');
   } catch (error) {
-    return {};
+    return { baseline: {}, current: {}, snapshotKey: "" };
   }
 }
 
-function saveCurrentPositions(tournamentId, ranked) {
+function saveCurrentPositions(tournamentId, ranked, snapshotKey) {
   const positions = Object.fromEntries(ranked.map((player, index) => [player.id, index + 1]));
-  window.localStorage.setItem(movementStorageKey(tournamentId), JSON.stringify(positions));
+  const existing = loadPreviousPositions(tournamentId);
+
+  if (existing.snapshotKey !== snapshotKey) {
+    const baseline = Object.keys(existing.current || {}).length ? existing.current : positions;
+    window.localStorage.setItem(
+      movementStorageKey(tournamentId),
+      JSON.stringify({
+        baseline,
+        current: positions,
+        snapshotKey,
+      }),
+    );
+    return;
+  }
+
+  window.localStorage.setItem(
+    movementStorageKey(tournamentId),
+    JSON.stringify({
+      baseline: existing.baseline || positions,
+      current: positions,
+      snapshotKey,
+    }),
+  );
 }
 
 function movementMarkup(player, index, previousPositions) {
-  const previous = previousPositions[player.id];
+  const previous = previousPositions.baseline?.[player.id];
   if (!previous || player.completed === 0) {
     return `<span class="rank-movement neutral" aria-hidden="true">•</span>`;
   }
@@ -106,6 +138,7 @@ async function renderLeaderboardPage() {
   leaderboardCourseName.textContent = tournament.courseName;
   leaderboardDescription.textContent = tournament.leaderboardDescription;
   const previousPositions = loadPreviousPositions(tournament.id);
+  const snapshotKey = leaderboardSnapshotKey(tournament);
 
   const playerGroupMap = new Map();
   tournament.groups.forEach((group, index) => {
@@ -231,7 +264,7 @@ async function renderLeaderboardPage() {
     )
     .join("");
 
-  saveCurrentPositions(tournament.id, ranked);
+  saveCurrentPositions(tournament.id, ranked, snapshotKey);
 }
 
 window.addEventListener("storage", renderLeaderboardPage);

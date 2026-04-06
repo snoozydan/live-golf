@@ -772,6 +772,34 @@ button {
   font-weight: 800;
 }
 
+.rank-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rank-movement {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.rank-movement.up {
+  color: var(--accent);
+}
+
+.rank-movement.down {
+  color: var(--danger);
+}
+
+.rank-movement.neutral {
+  color: rgba(24, 36, 27, 0.38);
+}
+
 .player-name {
   font-size: 1rem;
   font-weight: 800;

@@ -75,17 +75,17 @@ function saveCurrentPositions(tournamentId, ranked) {
 function movementMarkup(player, index, previousPositions) {
   const previous = previousPositions[player.id];
   if (!previous || player.completed === 0) {
-    return `<span class="movement-pill neutral">-</span>`;
+    return `<span class="rank-movement neutral" aria-hidden="true">•</span>`;
   }
 
   const current = index + 1;
   if (current < previous) {
-    return `<span class="movement-pill up">Up ${previous - current}</span>`;
+    return `<span class="rank-movement up" aria-label="Moved up ${previous - current} spots">↑</span>`;
   }
   if (current > previous) {
-    return `<span class="movement-pill down">Down ${current - previous}</span>`;
+    return `<span class="rank-movement down" aria-label="Moved down ${current - previous} spots">↓</span>`;
   }
-  return `<span class="movement-pill neutral">Even</span>`;
+  return `<span class="rank-movement neutral" aria-hidden="true">•</span>`;
 }
 
 async function renderLeaderboardPage() {
@@ -125,14 +125,16 @@ async function renderLeaderboardPage() {
         return `
         <article class="leaderboard-entry">
           <div class="leaderboard-row">
-            <div><span class="rank-pill">T${String(player.rank).replace(/^T/, "")}</span></div>
+            <div class="rank-cell">
+              <span class="rank-pill">T${String(player.rank).replace(/^T/, "")}</span>
+              ${movement}
+            </div>
             <div>
               <button class="player-toggle" type="button" data-player-toggle="${player.id}">
                 <span class="player-name">${player.name}</span>
               </button>
               <div class="player-meta-row">
                 <div class="player-meta">${metaText}</div>
-                ${movement}
               </div>
             </div>
             <div class="leaderboard-metric">

@@ -469,21 +469,21 @@ playerScoreForm.addEventListener("submit", async (event) => {
 
   let nextState = state;
   try {
+    const entries = [];
     group.playerIds.forEach((playerId) => {
       const input = groupScoreRows.querySelector(`input[name="score-${playerId}"]`);
       if (!input || input.value === "") return;
-      nextState = TournamentStore.updatePlayerScore(
-        nextState,
-        tournament.id,
+      entries.push({
         playerId,
-        Number(playerHoleSelect.value),
-        Number(input.value),
-      );
+        holeNumber: Number(playerHoleSelect.value),
+        strokes: Number(input.value),
+      });
+      nextState = TournamentStore.updatePlayerScore(nextState, tournament.id, playerId, Number(playerHoleSelect.value), Number(input.value));
     });
 
     state = nextState;
     if (window.AppData?.enabled()) {
-      state = await window.AppData.persistState(state);
+      state = await window.AppData.postScores(tournament.id, entries);
     }
 
     clearDraft(group.id, savedHoleNumber);

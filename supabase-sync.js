@@ -469,6 +469,77 @@
     }
   }
 
+  async function postScores(tournamentId, entries) {
+    const supabase = getClient();
+    if (!supabase) {
+      let nextState = TournamentStore.loadState();
+      entries.forEach((entry) => {
+        nextState = TournamentStore.updatePlayerScore(
+          nextState,
+          tournamentId,
+          entry.playerId,
+          entry.holeNumber,
+          entry.strokes,
+        );
+      });
+      TournamentStore.saveState(nextState);
+      return nextState;
+    }
+
+    isPersisting = true;
+    needsRefreshAfterPersist = false;
+
+    try {
+      const timestamp = new Date().toISOString();
+      const scoreRows = entries.map((entry) => ({
+        tournament_id: tournamentId,
+        player_id: entry.playerId,
+        hole_number: Number(entry.holeNumber),
+        strokes: Number(entry.strokes),
+        updated_at: timestamp,
+      }));
+
+      if (scoreRows.length) {
+        const { error } = await supabase
+          .from("scores")
+          .upsert(scoreRows, { onConflict: "tournament_id,player_id,hole_number" });
+        if (error) throw error;
+      }
+
+      const updateRows = entries.map((entry) => ({
+        tournament_id: tournamentId,
+        player_id: entry.playerId,
+        hole_number: Number(entry.holeNumber),
+        strokes: Number(entry.strokes),
+        created_at: timestamp,
+      }));
+
+      if (updateRows.length) {
+        const { error } = await supabase.from("score_updates").insert(updateRows);
+        if (error) throw error;
+      }
+
+      const { error: tournamentError } = await supabase
+        .from("tournaments")
+        .update({ updated_at: timestamp })
+        .eq("id", tournamentId);
+      if (tournamentError) throw tournamentError;
+
+      const refreshedState = await loadRemoteState();
+      notifySubscribers();
+      return refreshedState;
+    } finally {
+      isPersisting = false;
+      if (needsRefreshAfterPersist) {
+        needsRefreshAfterPersist = false;
+        const refreshedState = await loadRemoteState().catch(() => null);
+        if (refreshedState) {
+          notifySubscribers();
+        }
+      }
+    }
+  }
+
   async function bootstrap() {
     if (bootstrapping) {
       return bootstrapping;
@@ -535,6 +606,7 @@
     enabled: () => Boolean(getClient()),
     bootstrap,
     persistState,
+    postScores,
     clearTournamentScores,
     subscribe,
   };

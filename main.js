@@ -183,7 +183,17 @@ function renderGroupInputs(group, tournament) {
       return `
         <label class="group-score-row">
           <span class="group-score-name">${player.name}</span>
-          <input type="number" min="1" max="15" name="score-${player.id}" value="${currentScore ?? ""}" placeholder="-" />
+          <input
+            type="number"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            min="1"
+            max="15"
+            step="1"
+            name="score-${player.id}"
+            value="${currentScore ?? ""}"
+            placeholder="-"
+          />
         </label>
       `;
     })

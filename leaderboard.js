@@ -36,7 +36,7 @@ function playerStatus(player) {
   if (player.completed === 18) {
     return "F";
   }
-  return `On ${Math.min(18, player.completed + 1)}`;
+  return `On ${Math.min(18, player.lastScoredHole + 1)}`;
 }
 
 function playerMetaText(player, groupLabel) {

@@ -337,6 +337,7 @@
     let gross = 0;
     let parPlayed = 0;
     let received = 0;
+    let lastScoredHole = 0;
 
     player.scores.forEach((score, index) => {
       if (score === null || score === undefined || score === "") {
@@ -344,6 +345,7 @@
       }
 
       completed += 1;
+      lastScoredHole = index + 1;
       gross += Number(score);
       parPlayed += course[index].par;
       received += allocation[index].strokes;
@@ -362,7 +364,8 @@
       parPlayed,
       grossToPar,
       netToPar,
-      thru: completed === 18 ? "F" : completed === 0 ? "-" : completed,
+      lastScoredHole,
+      thru: completed === 18 ? "F" : lastScoredHole === 0 ? "-" : lastScoredHole,
     };
   }
 
@@ -425,6 +428,9 @@
       if (left.grossToPar !== right.grossToPar) {
         return left.grossToPar - right.grossToPar;
       }
+      if (left.lastScoredHole !== right.lastScoredHole) {
+        return right.lastScoredHole - left.lastScoredHole;
+      }
       if (left.completed !== right.completed) {
         return right.completed - left.completed;
       }
@@ -438,7 +444,7 @@
         previous &&
         previous.netToPar === player.netToPar &&
         previous.grossToPar === player.grossToPar &&
-        previous.completed === player.completed;
+        previous.lastScoredHole === player.lastScoredHole;
 
       if (!tied) {
         displayRank = index + 1;
@@ -450,7 +456,7 @@
         (next &&
           next.netToPar === player.netToPar &&
           next.grossToPar === player.grossToPar &&
-          next.completed === player.completed);
+          next.lastScoredHole === player.lastScoredHole);
 
       return {
         ...player,

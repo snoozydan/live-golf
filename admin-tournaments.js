@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ state, tournament, selectedTournamentId, rerender, setMessage, replaceState, setDirty }) {
+  renderContent({ state, tournament, selectedTournamentId, getFreshState, rerender, setMessage, replaceState, setDirty }) {
     const liveTournamentSelect = document.getElementById("live-tournament-select");
     const newTournamentNameInput = document.getElementById("new-tournament-name-input");
     const newCourseNameInput = document.getElementById("new-course-name-input");
@@ -24,7 +24,8 @@ AdminCommon.initAdminPage({
 
     setLiveButton.onclick = async () => {
       try {
-        let nextState = TournamentStore.setLeaderboardTournament(state, liveTournamentSelect.value);
+        const baseState = await getFreshState();
+        let nextState = TournamentStore.setLeaderboardTournament(baseState, liveTournamentSelect.value);
         if (window.AppData?.enabled()) {
           nextState = await window.AppData.persistState(nextState);
         }
@@ -39,7 +40,8 @@ AdminCommon.initAdminPage({
 
     createTournamentButton.onclick = async () => {
       try {
-        let nextState = TournamentStore.createTournamentFromAdmin(state, {
+        const baseState = await getFreshState();
+        let nextState = TournamentStore.createTournamentFromAdmin(baseState, {
           tournamentName: newTournamentNameInput.value.trim() || "New Tournament",
           courseName: newCourseNameInput.value.trim() || tournament?.courseName || "Course Name",
           courseTemplateId: newTournamentCourseTemplateSelect.value || "",
@@ -65,7 +67,8 @@ AdminCommon.initAdminPage({
     duplicateTournamentButton.onclick = async () => {
       if (!selectedTournamentId) return;
       try {
-        let nextState = TournamentStore.duplicateTournament(state, selectedTournamentId, {
+        const baseState = await getFreshState();
+        let nextState = TournamentStore.duplicateTournament(baseState, selectedTournamentId, {
           tournamentName: `${tournament?.tournamentName || "Tournament"} Copy`,
           courseName: tournament?.courseName || "Course Name",
           status: "upcoming",
@@ -91,7 +94,8 @@ AdminCommon.initAdminPage({
       const confirmed = window.confirm(`Delete ${tournament?.tournamentName || "this tournament"}?`);
       if (!confirmed) return;
       try {
-        let nextState = TournamentStore.deleteTournament(state, selectedTournamentId);
+        const baseState = await getFreshState();
+        let nextState = TournamentStore.deleteTournament(baseState, selectedTournamentId);
         if (window.AppData?.enabled()) {
           nextState = await window.AppData.persistState(nextState);
         }

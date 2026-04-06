@@ -678,6 +678,36 @@ button {
   gap: 12px;
 }
 
+.scoring-status-bar {
+  position: sticky;
+  top: 12px;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 250, 242, 0.96);
+  border: 1px solid rgba(24, 36, 27, 0.08);
+  box-shadow: 0 10px 24px rgba(28, 42, 33, 0.08);
+}
+
+.scoring-status-hole {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.scoring-status-pill {
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(184, 120, 32, 0.12);
+  color: #7a3d06;
+  font-weight: 800;
+  text-align: center;
+}
+
 .hole-nav-actions {
   display: flex;
   gap: 10px;
@@ -1290,6 +1320,12 @@ button {
     justify-content: stretch;
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+
+  .scoring-status-bar {
+    position: static;
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .group-scorecard-player {

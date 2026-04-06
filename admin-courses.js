@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ state, tournament, selectedTournamentId, rerender, setMessage, replaceState, setDirty }) {
+  renderContent({ state, tournament, selectedTournamentId, getFreshState, rerender, setMessage, replaceState, setDirty }) {
     const courseEditTargetSelect = document.getElementById("course-edit-target-select");
     const courseList = document.getElementById("admin-course-list");
     const courseSectionLabel = document.getElementById("course-section-label");
@@ -92,7 +92,8 @@ AdminCommon.initAdminPage({
         return;
       }
       try {
-        let nextState = TournamentStore.applyCourseTemplate(TournamentStore.loadState(), selectedTournamentId, applyCourseTemplateSelect.value);
+        const baseState = await getFreshState();
+        let nextState = TournamentStore.applyCourseTemplate(baseState, selectedTournamentId, applyCourseTemplateSelect.value);
         if (window.AppData?.enabled()) {
           nextState = await window.AppData.persistState(nextState);
         }
@@ -109,8 +110,9 @@ AdminCommon.initAdminPage({
 
     saveCourseTemplateButton.onclick = async () => {
       try {
+        const baseState = await getFreshState();
         let nextState = TournamentStore.saveTournamentCourseAsTemplate(
-          TournamentStore.loadState(),
+          baseState,
           selectedTournamentId,
           saveCourseTemplateNameInput.value.trim(),
         );
@@ -130,7 +132,7 @@ AdminCommon.initAdminPage({
 
     saveButton.onclick = async () => {
       try {
-        let nextState = TournamentStore.loadState();
+        let nextState = await getFreshState();
         if (selectedCourseEditTarget === "tournament") {
           draftCourse.forEach((hole) => {
             nextState = TournamentStore.updateHole(nextState, selectedTournamentId, hole.hole, hole);

@@ -4,6 +4,7 @@
   let syncChannel = null;
   let isPersisting = false;
   let needsRefreshAfterPersist = false;
+  let supportsHomeDescription = null;
   const subscribers = new Set();
 
   function hasConfig() {
@@ -29,7 +30,23 @@
     return (left, right) => Number(left[key]) - Number(right[key]);
   }
 
-  function tournamentRowToState(row, related) {
+  async function detectHomeDescriptionSupport() {
+    if (supportsHomeDescription !== null) {
+      return supportsHomeDescription;
+    }
+
+    const supabase = getClient();
+    if (!supabase) {
+      supportsHomeDescription = false;
+      return supportsHomeDescription;
+    }
+
+    const result = await supabase.from("tournaments").select("id, home_description").limit(1);
+    supportsHomeDescription = !result.error;
+    return supportsHomeDescription;
+  }
+
+  function tournamentRowToState(row, related, fallbackHomeDescription) {
     const holes = related.holes
       .filter((hole) => hole.tournament_id === row.id)
       .sort(sortByNumber("hole_number"))
@@ -94,6 +111,7 @@
       id: row.id,
       tournamentName: row.tournament_name,
       courseName: row.course_name,
+      homeDescription: row.home_description || fallbackHomeDescription || row.leaderboard_description,
       leaderboardDescription: row.leaderboard_description,
       status: row.status,
       updatedAt: new Date(row.updated_at).getTime(),
@@ -125,6 +143,12 @@
     if (!supabase) {
       return TournamentStore.loadState();
     }
+
+    await detectHomeDescriptionSupport();
+    const localState = TournamentStore.loadState();
+    const localTournamentMap = new Map(
+      (localState.tournaments || []).map((tournament) => [tournament.id, tournament]),
+    );
 
     const [
       tournamentsResult,
@@ -186,7 +210,9 @@
       courseTemplates: (templatesResult.data || []).map((row) =>
         templateRowToState(row, templateHolesResult.data || []),
       ),
-      tournaments: tournamentsResult.data.map((row) => tournamentRowToState(row, related)),
+      tournaments: tournamentsResult.data.map((row) =>
+        tournamentRowToState(row, related, localTournamentMap.get(row.id)?.homeDescription),
+      ),
     };
 
     TournamentStore.saveState(nextState);
@@ -310,6 +336,7 @@
     needsRefreshAfterPersist = false;
 
     try {
+      await detectHomeDescriptionSupport();
       const nextState = TournamentStore.saveState(state || TournamentStore.loadState());
       const existingTournaments = await supabase.from("tournaments").select("id");
       if (existingTournaments.error) {
@@ -326,16 +353,22 @@
         if (error) throw error;
       }
 
-      const tournamentRows = nextState.tournaments.map((tournament) => ({
-        id: tournament.id,
-        tournament_name: tournament.tournamentName,
-        course_name: tournament.courseName,
-        leaderboard_description: tournament.leaderboardDescription,
-        status: tournament.status,
-        is_live: tournament.id === nextState.leaderboardTournamentId,
-        admin_code: nextState.adminCode,
-        updated_at: new Date().toISOString(),
-      }));
+      const tournamentRows = nextState.tournaments.map((tournament) => {
+        const row = {
+          id: tournament.id,
+          tournament_name: tournament.tournamentName,
+          course_name: tournament.courseName,
+          leaderboard_description: tournament.leaderboardDescription,
+          status: tournament.status,
+          is_live: tournament.id === nextState.leaderboardTournamentId,
+          admin_code: nextState.adminCode,
+          updated_at: new Date().toISOString(),
+        };
+        if (supportsHomeDescription) {
+          row.home_description = tournament.homeDescription || tournament.leaderboardDescription;
+        }
+        return row;
+      });
 
       if (tournamentRows.length) {
         const { error } = await supabase.from("tournaments").upsert(tournamentRows);

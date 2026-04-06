@@ -130,6 +130,9 @@
         tournament: currentTournament(),
         selectedTournamentId,
         setSelectedTournament,
+        async getFreshState() {
+          return window.AppData?.enabled() ? await window.AppData.bootstrap() : TournamentStore.loadState();
+        },
         rerender,
         setMessage,
         setDirty,

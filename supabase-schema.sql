@@ -2,12 +2,16 @@ create table if not exists tournaments (
   id text primary key,
   tournament_name text not null,
   course_name text not null,
+  home_description text,
   leaderboard_description text not null,
   status text not null default 'upcoming',
   is_live boolean not null default false,
   admin_code text not null default 'pga',
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+alter table tournaments add column if not exists home_description text;
+update tournaments set home_description = leaderboard_description where home_description is null;
 
 create table if not exists course_templates (
   id text primary key,

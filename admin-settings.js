@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ state, tournament, selectedTournamentId, rerender, setMessage, replaceState, setDirty }) {
+  renderContent({ state, tournament, selectedTournamentId, getFreshState, rerender, setMessage, replaceState, setDirty }) {
     const tournamentNameInput = document.getElementById("tournament-name-input");
     const courseTemplateSelect = document.getElementById("course-template-select");
     const courseNameInput = document.getElementById("course-name-input");
@@ -86,7 +86,8 @@ AdminCommon.initAdminPage({
 
     setLiveButton.onclick = async () => {
       try {
-        let nextState = TournamentStore.setLeaderboardTournament(TournamentStore.loadState(), liveTournamentSelect.value);
+        const baseState = await getFreshState();
+        let nextState = TournamentStore.setLeaderboardTournament(baseState, liveTournamentSelect.value);
         if (window.AppData?.enabled()) {
           nextState = await window.AppData.persistState(nextState);
         }
@@ -102,7 +103,7 @@ AdminCommon.initAdminPage({
 
     saveButton.onclick = async () => {
       try {
-        let nextState = TournamentStore.loadState();
+        let nextState = await getFreshState();
 
         if (selectedCourseTemplateId) {
           nextState = TournamentStore.applyCourseTemplate(nextState, selectedTournamentId, selectedCourseTemplateId);
@@ -130,7 +131,7 @@ AdminCommon.initAdminPage({
       try {
         let nextState = window.AppData?.enabled()
           ? await window.AppData.clearTournamentScores(selectedTournamentId)
-          : TournamentStore.clearTournamentScores(TournamentStore.loadState(), selectedTournamentId);
+          : TournamentStore.clearTournamentScores(await getFreshState(), selectedTournamentId);
         replaceState(nextState);
         setDirty(false);
         setMessage("Cleared all scores for selected tournament.");

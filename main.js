@@ -19,6 +19,8 @@ const groupScoreRows = document.getElementById("group-score-rows");
 const updatesFeed = document.getElementById("updates-feed");
 const scoreSaveMessage = document.getElementById("score-save-message");
 const postGroupScoresButton = document.getElementById("post-group-scores-button");
+const currentHoleLabel = document.getElementById("current-hole-label");
+const scoreDraftStatus = document.getElementById("score-draft-status");
 
 const eventName = document.getElementById("event-name");
 const courseName = document.getElementById("course-name");
@@ -28,6 +30,7 @@ let state = TournamentStore.loadState();
 let activeGroupId = null;
 let selectedHoleNumber = 1;
 let isPostingScores = false;
+const scoreDrafts = new Map();
 
 function setPostingState(isPosting) {
   isPostingScores = isPosting;
@@ -71,6 +74,58 @@ function progressScoreLabel(player, value) {
 
 function currentTournament() {
   return TournamentStore.getLiveTournament(state);
+}
+
+function scoreDraftKey(groupId, holeNumber) {
+  return `${groupId || "none"}-${holeNumber}`;
+}
+
+function captureCurrentDraft() {
+  if (!activeGroupId) return;
+  const holeNumber = Number(playerHoleSelect.value || selectedHoleNumber);
+  const draft = {};
+  let hasValue = false;
+
+  groupScoreRows.querySelectorAll("input[name^='score-']").forEach((input) => {
+    const playerId = input.name.replace("score-", "");
+    draft[playerId] = input.value;
+    if (input.value !== "") {
+      hasValue = true;
+    }
+  });
+
+  const key = scoreDraftKey(activeGroupId, holeNumber);
+  if (hasValue) {
+    scoreDrafts.set(key, draft);
+  } else {
+    scoreDrafts.delete(key);
+  }
+}
+
+function clearDraft(groupId, holeNumber) {
+  scoreDrafts.delete(scoreDraftKey(groupId, holeNumber));
+}
+
+function clearGroupDrafts(groupId) {
+  Array.from(scoreDrafts.keys()).forEach((key) => {
+    if (key.startsWith(`${groupId}-`)) {
+      scoreDrafts.delete(key);
+    }
+  });
+}
+
+function draftStatusText(groupId, holeNumber) {
+  const draft = scoreDrafts.get(scoreDraftKey(groupId, holeNumber));
+  if (!draft) {
+    return "No scores entered yet";
+  }
+
+  const readyCount = Object.values(draft).filter((value) => value !== "").length;
+  if (!readyCount) {
+    return "No scores entered yet";
+  }
+
+  return readyCount === 1 ? "1 score ready to save" : `${readyCount} scores ready to save`;
 }
 
 function timeAgo(timestamp) {
@@ -142,7 +197,7 @@ function renderHeaderMetrics() {
             </div>
             <div class="snapshot-meta">Thru ${player.thru}</div>
           </div>
-          <div class="snapshot-score">${scoreLabel(player.netToPar)}</div>
+          <div class="snapshot-score">${player.completed === 0 ? "-" : scoreLabel(player.netToPar)}</div>
         </div>
       `,
     )
@@ -177,6 +232,7 @@ function renderUpdates() {
 
 function renderGroupInputs(group, tournament) {
   const holeNumber = Number(playerHoleSelect.value);
+  const draft = scoreDrafts.get(scoreDraftKey(group.id, holeNumber)) || {};
   const players = group.playerIds
     .map((id) => tournament.players.find((player) => player.id === id))
     .filter(Boolean);
@@ -184,6 +240,7 @@ function renderGroupInputs(group, tournament) {
   groupScoreRows.innerHTML = players
     .map((player) => {
       const currentScore = player.scores[holeNumber - 1];
+      const inputValue = Object.prototype.hasOwnProperty.call(draft, player.id) ? draft[player.id] : (currentScore ?? "");
       return `
         <label class="group-score-row">
           <span class="group-score-name">${player.name}</span>
@@ -195,13 +252,21 @@ function renderGroupInputs(group, tournament) {
             max="15"
             step="1"
             name="score-${player.id}"
-            value="${currentScore ?? ""}"
+            value="${inputValue}"
             placeholder="-"
           />
         </label>
       `;
     })
     .join("");
+
+  groupScoreRows.querySelectorAll("input[name^='score-']").forEach((input) => {
+    input.addEventListener("input", () => {
+      captureCurrentDraft();
+      scoreDraftStatus.textContent = draftStatusText(group.id, holeNumber);
+      scoreSaveMessage.classList.add("hidden");
+    });
+  });
 }
 
 function renderGroupCards(group, tournament) {
@@ -294,6 +359,8 @@ function renderActiveGroup() {
     loginForm.classList.remove("hidden");
     playerSignoutButton.classList.add("hidden");
     scoreSaveMessage.classList.add("hidden");
+    currentHoleLabel.textContent = "Hole 1";
+    scoreDraftStatus.textContent = "No scores entered yet";
     return;
   }
 
@@ -330,6 +397,8 @@ function renderActiveGroup() {
   }
 
   playerHoleSelect.value = `${selectedHoleNumber}`;
+  currentHoleLabel.textContent = `Hole ${selectedHoleNumber}`;
+  scoreDraftStatus.textContent = draftStatusText(group.id, selectedHoleNumber);
 
   const holeNumber = selectedHoleNumber;
   previousHoleButton.disabled = holeNumber <= 1;
@@ -365,6 +434,8 @@ loginForm.addEventListener("submit", async (event) => {
   }
 
   activeGroupId = group.id;
+  const savedHole = Number(window.localStorage.getItem(holeSessionKey(tournament.id, group.id)));
+  selectedHoleNumber = savedHole >= 1 && savedHole <= 18 ? savedHole : 1;
   saveActiveGroupSession(group.id);
   loginMessage.textContent = `${group.name} is now unlocked for score entry.`;
   await rerender(false);
@@ -375,6 +446,8 @@ playerScoreForm.addEventListener("submit", async (event) => {
   if (isPostingScores) {
     return;
   }
+
+  captureCurrentDraft();
 
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
@@ -388,6 +461,7 @@ playerScoreForm.addEventListener("submit", async (event) => {
   if (!filledInputs.length) {
     scoreSaveMessage.textContent = `Enter at least one score before saving hole ${savedHoleNumber}.`;
     scoreSaveMessage.classList.remove("hidden");
+    scoreDraftStatus.textContent = draftStatusText(group.id, savedHoleNumber);
     return;
   }
 
@@ -412,6 +486,8 @@ playerScoreForm.addEventListener("submit", async (event) => {
       state = await window.AppData.persistState(state);
     }
 
+    clearDraft(group.id, savedHoleNumber);
+
     if (savedHoleNumber < 18) {
       selectedHoleNumber = savedHoleNumber + 1;
     } else {
@@ -432,9 +508,11 @@ playerScoreForm.addEventListener("submit", async (event) => {
   }
 });
 
-  playerHoleSelect.addEventListener("change", async () => {
+playerHoleSelect.addEventListener("change", async () => {
+  captureCurrentDraft();
   selectedHoleNumber = Number(playerHoleSelect.value);
   saveSelectedHoleSession(selectedHoleNumber);
+  scoreSaveMessage.classList.add("hidden");
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
@@ -444,8 +522,10 @@ playerScoreForm.addEventListener("submit", async (event) => {
 previousHoleButton.addEventListener("click", async () => {
   const current = selectedHoleNumber;
   if (current <= 1) return;
+  captureCurrentDraft();
   selectedHoleNumber = current - 1;
   saveSelectedHoleSession(selectedHoleNumber);
+  scoreSaveMessage.classList.add("hidden");
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
@@ -455,8 +535,10 @@ previousHoleButton.addEventListener("click", async () => {
 nextHoleButton.addEventListener("click", async () => {
   const current = selectedHoleNumber;
   if (current >= 18) return;
+  captureCurrentDraft();
   selectedHoleNumber = current + 1;
   saveSelectedHoleSession(selectedHoleNumber);
+  scoreSaveMessage.classList.add("hidden");
   const tournament = currentTournament();
   const group = tournament?.groups.find((entry) => entry.id === activeGroupId);
   if (!group || !tournament) return;
@@ -464,6 +546,8 @@ nextHoleButton.addEventListener("click", async () => {
 });
 
 playerSignoutButton.addEventListener("click", async () => {
+  captureCurrentDraft();
+  clearGroupDrafts(activeGroupId);
   clearSelectedHoleSession(activeGroupId);
   activeGroupId = null;
   selectedHoleNumber = 1;
@@ -471,6 +555,8 @@ playerSignoutButton.addEventListener("click", async () => {
   playerCodeInput.value = "";
   loginMessage.textContent = "Group signed out on this device.";
   scoreSaveMessage.classList.add("hidden");
+  currentHoleLabel.textContent = "Hole 1";
+  scoreDraftStatus.textContent = "No scores entered yet";
   await rerender(false);
 });
 

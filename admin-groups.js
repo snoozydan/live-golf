@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ tournament, selectedTournamentId, rerender, setMessage, replaceState, setDirty }) {
+  renderContent({ tournament, selectedTournamentId, getFreshState, rerender, setMessage, replaceState, setDirty }) {
     const saveButton = document.getElementById("save-button");
     const addGroupButton = document.getElementById("add-group-button");
     const groupList = document.getElementById("admin-group-list");
@@ -132,7 +132,8 @@ AdminCommon.initAdminPage({
         seen.add(code);
       }
       try {
-        let nextState = TournamentStore.updateTournamentGroups(TournamentStore.loadState(), selectedTournamentId, draftGroups);
+        const baseState = await getFreshState();
+        let nextState = TournamentStore.updateTournamentGroups(baseState, selectedTournamentId, draftGroups);
         if (window.AppData?.enabled()) {
           nextState = await window.AppData.persistState(nextState);
         }

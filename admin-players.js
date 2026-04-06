@@ -1,5 +1,5 @@
 AdminCommon.initAdminPage({
-  renderContent({ state, tournament, selectedTournamentId, rerender, setMessage, replaceState, setDirty }) {
+  renderContent({ state, tournament, selectedTournamentId, getFreshState, rerender, setMessage, replaceState, setDirty }) {
     const newPlayerNameInput = document.getElementById("new-player-name-input");
     const newPlayerCodeInput = document.getElementById("new-player-code-input");
     const newPlayerFlightInput = document.getElementById("new-player-flight-input");
@@ -167,8 +167,9 @@ AdminCommon.initAdminPage({
       }
 
       try {
+        const baseState = await getFreshState();
         let nextState = TournamentStore.replaceTournamentPlayers(
-          TournamentStore.loadState(),
+          baseState,
           selectedTournamentId,
           draftPlayers,
         );

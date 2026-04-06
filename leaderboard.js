@@ -51,7 +51,7 @@ function playerStatus(player) {
 
 function playerMetaText(player, groupLabel) {
   const teeText = player.completed === 0 ? ` · Tee ${player.teeTime || "-"}` : "";
-  return `${groupLabel || "No group"} · HCP ${player.handicap}${teeText}`;
+  return `${groupLabel || "No group"}${teeText}`;
 }
 
 function grossResultLabel(delta) {
@@ -244,7 +244,7 @@ async function renderLeaderboardPage() {
           <div class="player-card-header">
             <div>
               <h3>${player.name}</h3>
-              <div class="card-subline">${player.completed === 0 ? `${playerGroupMap.get(player.id) || "No group"} · Tee ${player.teeTime || "-"}` : `${playerGroupMap.get(player.id) || "No group"} · Thru ${player.thru}`}</div>
+              <div class="card-subline">${player.completed === 0 ? `${playerGroupMap.get(player.id) || "No group"} · HCP ${player.handicap}` : `${playerGroupMap.get(player.id) || "No group"} · HCP ${player.handicap}`}</div>
             </div>
             <div class="score-badge ${player.completed === 0 ? "" : scoreTone(player.netToPar)}">${player.completed === 0 ? "-" : scoreLabel(player.netToPar)}</div>
           </div>

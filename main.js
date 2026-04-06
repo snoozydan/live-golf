@@ -120,13 +120,13 @@ function resetActiveGroupToHoleOneIfScoresCleared() {
     return;
   }
 
-  if (TournamentStore.totalPostedScores(tournament) !== 0) {
+  if (TournamentStore.totalPostedScores(tournament) !== 0 || selectedHoleNumber === 1) {
     return;
   }
 
   clearGroupDrafts(activeGroupId);
-  clearSelectedHoleSession(activeGroupId);
   selectedHoleNumber = 1;
+  saveSelectedHoleSession(1);
   scoreSaveMessage.classList.add("hidden");
 }
 
@@ -405,7 +405,7 @@ function renderActiveGroup() {
   selectedPlayerNet.className = "badge-value";
 
   playerHoleSelect.innerHTML = tournament.course
-    .map((hole) => `<option value="${hole.hole}">Hole ${hole.hole} · Par ${hole.par}</option>`)
+    .map((hole) => `<option value="${hole.hole}">Hole ${hole.hole} · Par ${hole.par} · ${hole.yardage} yds</option>`)
     .join("");
 
   if (selectedHoleNumber < 1 || selectedHoleNumber > 18) {

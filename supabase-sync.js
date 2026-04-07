@@ -6,6 +6,7 @@
   let needsRefreshAfterPersist = false;
   let supportsHomeDescription = null;
   let supportsScoringModel = null;
+  let supportsPlayerWinnings = null;
   let mutationQueue = Promise.resolve();
   const subscribers = new Set();
 
@@ -62,6 +63,22 @@
     const result = await supabase.from("tournaments").select("id, scoring_model").limit(1);
     supportsScoringModel = !result.error;
     return supportsScoringModel;
+  }
+
+  async function detectPlayerWinningsSupport() {
+    if (supportsPlayerWinnings !== null) {
+      return supportsPlayerWinnings;
+    }
+
+    const supabase = getClient();
+    if (!supabase) {
+      supportsPlayerWinnings = false;
+      return supportsPlayerWinnings;
+    }
+
+    const result = await supabase.from("players").select("id, winnings").limit(1);
+    supportsPlayerWinnings = !result.error;
+    return supportsPlayerWinnings;
   }
 
   function tournamentRowToState(row, related, fallbackTournament) {
@@ -217,6 +234,7 @@
 
     await detectHomeDescriptionSupport();
     await detectScoringModelSupport();
+    await detectPlayerWinningsSupport();
     const localState = TournamentStore.loadState();
     const localTournamentMap = new Map(
       (localState.tournaments || []).map((tournament) => [tournament.id, tournament]),
@@ -292,20 +310,27 @@
   }
 
   async function replaceTournamentChildren(supabase, tournament) {
-    const deleteTournamentHoles = await supabase.from("tournament_holes").delete().eq("tournament_id", tournament.id);
-    if (deleteTournamentHoles.error) throw deleteTournamentHoles.error;
+    const [
+      existingHolesResult,
+      existingPlayersResult,
+      existingGroupsResult,
+      existingScoresResult,
+    ] = await Promise.all([
+      supabase.from("tournament_holes").select("hole_number").eq("tournament_id", tournament.id),
+      supabase.from("players").select("id").eq("tournament_id", tournament.id),
+      supabase.from("groups").select("id").eq("tournament_id", tournament.id),
+      supabase.from("scores").select("player_id,hole_number").eq("tournament_id", tournament.id),
+    ]);
 
-    const deletePlayers = await supabase.from("players").delete().eq("tournament_id", tournament.id);
-    if (deletePlayers.error) throw deletePlayers.error;
-
-    const deleteGroups = await supabase.from("groups").delete().eq("tournament_id", tournament.id);
-    if (deleteGroups.error) throw deleteGroups.error;
-
-    const deleteScores = await supabase.from("scores").delete().eq("tournament_id", tournament.id);
-    if (deleteScores.error) throw deleteScores.error;
-
-    const deleteUpdates = await supabase.from("score_updates").delete().eq("tournament_id", tournament.id);
-    if (deleteUpdates.error) throw deleteUpdates.error;
+    const preloadErrors = [
+      existingHolesResult.error,
+      existingPlayersResult.error,
+      existingGroupsResult.error,
+      existingScoresResult.error,
+    ].filter(Boolean);
+    if (preloadErrors.length) {
+      throw preloadErrors[0];
+    }
 
     const holeRows = tournament.course.map((hole) => ({
       tournament_id: tournament.id,
@@ -316,7 +341,23 @@
     }));
 
     if (holeRows.length) {
-      const { error } = await supabase.from("tournament_holes").insert(holeRows);
+      const { error } = await supabase
+        .from("tournament_holes")
+        .upsert(holeRows, { onConflict: "tournament_id,hole_number" });
+      if (error) throw error;
+    }
+
+    const desiredHoleNumbers = new Set(holeRows.map((row) => Number(row.hole_number)));
+    const staleHoleNumbers = (existingHolesResult.data || [])
+      .map((row) => Number(row.hole_number))
+      .filter((holeNumber) => !desiredHoleNumbers.has(holeNumber));
+
+    if (staleHoleNumbers.length) {
+      const { error } = await supabase
+        .from("tournament_holes")
+        .delete()
+        .eq("tournament_id", tournament.id)
+        .in("hole_number", staleHoleNumbers);
       if (error) throw error;
     }
 
@@ -329,12 +370,27 @@
       tee_time: player.teeTime || "",
       access_code: player.accessCode,
       handicap: Number(player.handicap) || 0,
-      winnings: Number(player.winnings) || 0,
       display_order: index,
     }));
 
+    if (supportsPlayerWinnings) {
+      playerRows.forEach((playerRow, index) => {
+        playerRow.winnings = Number(tournament.players[index]?.winnings) || 0;
+      });
+    }
+
     if (playerRows.length) {
-      const { error } = await supabase.from("players").insert(playerRows);
+      const { error } = await supabase.from("players").upsert(playerRows);
+      if (error) throw error;
+    }
+
+    const desiredPlayerIds = new Set(playerRows.map((row) => row.id));
+    const stalePlayerIds = (existingPlayersResult.data || [])
+      .map((row) => row.id)
+      .filter((id) => !desiredPlayerIds.has(id));
+
+    if (stalePlayerIds.length) {
+      const { error } = await supabase.from("players").delete().in("id", stalePlayerIds);
       if (error) throw error;
     }
 
@@ -347,7 +403,17 @@
     }));
 
     if (groupRows.length) {
-      const { error } = await supabase.from("groups").insert(groupRows);
+      const { error } = await supabase.from("groups").upsert(groupRows);
+      if (error) throw error;
+    }
+
+    const desiredGroupIds = new Set(groupRows.map((row) => row.id));
+    const staleGroupIds = (existingGroupsResult.data || [])
+      .map((row) => row.id)
+      .filter((id) => !desiredGroupIds.has(id));
+
+    if (staleGroupIds.length) {
+      const { error } = await supabase.from("groups").delete().in("id", staleGroupIds);
       if (error) throw error;
     }
 
@@ -358,6 +424,14 @@
         slot_number: index + 1,
       })),
     );
+
+    if (groupRows.length) {
+      const { error } = await supabase
+        .from("group_players")
+        .delete()
+        .in("group_id", groupRows.map((group) => group.id));
+      if (error) throw error;
+    }
 
     if (groupPlayerRows.length) {
       const { error } = await supabase.from("group_players").insert(groupPlayerRows);
@@ -381,9 +455,31 @@
     );
 
     if (scoreRows.length) {
-      const { error } = await supabase.from("scores").insert(scoreRows);
+      const { error } = await supabase
+        .from("scores")
+        .upsert(scoreRows, { onConflict: "tournament_id,player_id,hole_number" });
       if (error) throw error;
     }
+
+    const desiredScoreKeys = new Set(
+      scoreRows.map((row) => `${row.player_id}:${Number(row.hole_number)}`),
+    );
+    const staleScores = (existingScoresResult.data || []).filter(
+      (row) => !desiredScoreKeys.has(`${row.player_id}:${Number(row.hole_number)}`),
+    );
+
+    for (const staleScore of staleScores) {
+      const { error } = await supabase
+        .from("scores")
+        .delete()
+        .eq("tournament_id", tournament.id)
+        .eq("player_id", staleScore.player_id)
+        .eq("hole_number", staleScore.hole_number);
+      if (error) throw error;
+    }
+
+    const deleteUpdates = await supabase.from("score_updates").delete().eq("tournament_id", tournament.id);
+    if (deleteUpdates.error) throw deleteUpdates.error;
 
     const updateRows = (tournament.updates || []).slice(0, 30).map((update) => ({
       tournament_id: tournament.id,
@@ -408,6 +504,7 @@
     return runSerializedMutation(async () => {
       await detectHomeDescriptionSupport();
       await detectScoringModelSupport();
+      await detectPlayerWinningsSupport();
       const nextState = TournamentStore.saveState(state || TournamentStore.loadState());
       const existingTournaments = await supabase.from("tournaments").select("id");
       if (existingTournaments.error) {

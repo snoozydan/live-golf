@@ -438,23 +438,14 @@
     let displayRank = 1;
     return computed.map((player, index) => {
       const previous = computed[index - 1];
-      const tied =
-        previous &&
-        previous.netToPar === player.netToPar &&
-        previous.grossToPar === player.grossToPar &&
-        previous.lastScoredHole === player.lastScoredHole;
+      const tied = previous && previous.netToPar === player.netToPar;
 
       if (!tied) {
         displayRank = index + 1;
       }
 
       const next = computed[index + 1];
-      const shared =
-        tied ||
-        (next &&
-          next.netToPar === player.netToPar &&
-          next.grossToPar === player.grossToPar &&
-          next.lastScoredHole === player.lastScoredHole);
+      const shared = tied || (next && next.netToPar === player.netToPar);
 
       return {
         ...player,

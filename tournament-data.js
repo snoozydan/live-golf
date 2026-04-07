@@ -101,6 +101,7 @@
       id: overrides.id || makeId("tournament"),
       tournamentName: overrides.tournamentName || "New Tournament",
       courseName: overrides.courseName || "Course Name",
+      scoringModel: overrides.scoringModel || "starting-handicap",
       homeDescription:
         overrides.homeDescription ||
         "Welcome players and guests. Use this page as the tournament hub for event details, scoring access, and the live leaderboard.",
@@ -204,6 +205,7 @@
       id: tournament.id || fallback.id,
       tournamentName: tournament.tournamentName || fallback.tournamentName,
       courseName: tournament.courseName || fallback.courseName,
+      scoringModel: tournament.scoringModel || fallback.scoringModel || "starting-handicap",
       homeDescription: tournament.homeDescription || fallback.homeDescription,
       leaderboardDescription: tournament.leaderboardDescription || fallback.leaderboardDescription,
       status: tournament.status || fallback.status,
@@ -335,11 +337,12 @@
     }));
   }
 
-  function computePlayer(player, course) {
+  function computePlayer(player, course, scoringModel = "starting-handicap") {
     const allocation = strokeAllocation(player.handicap, course);
     let completed = 0;
     let gross = 0;
     let parPlayed = 0;
+    let received = 0;
     let lastScoredHole = 0;
 
     player.scores.forEach((score, index) => {
@@ -351,18 +354,22 @@
       lastScoredHole = index + 1;
       gross += Number(score);
       parPlayed += course[index].par;
+      received += allocation[index].strokes;
     });
 
-    const net = gross - player.handicap;
+    const usesStartingHandicap = scoringModel === "starting-handicap";
+    const net = usesStartingHandicap ? gross - player.handicap : gross - received;
     const grossToPar = gross - parPlayed;
-    const netToPar = grossToPar - player.handicap;
+    const netToPar = usesStartingHandicap ? grossToPar - player.handicap : net - parPlayed;
 
     return {
       ...player,
+      scoringModel,
       allocation,
       completed,
       gross,
       net,
+      received,
       parPlayed,
       grossToPar,
       netToPar,
@@ -376,7 +383,9 @@
       return [];
     }
 
-    const computed = tournament.players.map((player) => computePlayer(player, tournament.course));
+    const computed = tournament.players.map((player) =>
+      computePlayer(player, tournament.course, tournament.scoringModel || "starting-handicap"),
+    );
     function teeTimeMinutes(value) {
       const match = String(value || "")
         .trim()
@@ -553,6 +562,7 @@
   function updateTournamentSettings(state, tournamentId, changes) {
     return updateTournament(state, tournamentId, (tournament) => ({
       ...tournament,
+      scoringModel: String(changes.scoringModel || "").trim() || tournament.scoringModel || "starting-handicap",
       tournamentName: String(changes.tournamentName || "").trim() || tournament.tournamentName,
       courseName: String(changes.courseName || "").trim() || tournament.courseName,
       homeDescription: String(changes.homeDescription || "").trim() || tournament.homeDescription,
@@ -589,6 +599,7 @@
         courseTemplate?.name ||
         sourceTournament?.courseName ||
         "Course Name",
+      scoringModel: String(details.scoringModel || "").trim() || sourceTournament?.scoringModel || "starting-handicap",
       homeDescription:
         String(details.homeDescription || "").trim() ||
         sourceTournament?.homeDescription ||
@@ -653,6 +664,7 @@
     const duplicate = createTournament({
       tournamentName: String(details.tournamentName || "").trim() || `${source.tournamentName} Copy`,
       courseName: String(details.courseName || "").trim() || source.courseName,
+      scoringModel: source.scoringModel || "starting-handicap",
       homeDescription: source.homeDescription,
       leaderboardDescription: source.leaderboardDescription,
       status: details.status || "upcoming",

@@ -5,6 +5,8 @@
   let isPersisting = false;
   let needsRefreshAfterPersist = false;
   let supportsHomeDescription = null;
+  let supportsScoringModel = null;
+  let mutationQueue = Promise.resolve();
   const subscribers = new Set();
 
   function hasConfig() {
@@ -46,7 +48,23 @@
     return supportsHomeDescription;
   }
 
-  function tournamentRowToState(row, related, fallbackHomeDescription) {
+  async function detectScoringModelSupport() {
+    if (supportsScoringModel !== null) {
+      return supportsScoringModel;
+    }
+
+    const supabase = getClient();
+    if (!supabase) {
+      supportsScoringModel = false;
+      return supportsScoringModel;
+    }
+
+    const result = await supabase.from("tournaments").select("id, scoring_model").limit(1);
+    supportsScoringModel = !result.error;
+    return supportsScoringModel;
+  }
+
+  function tournamentRowToState(row, related, fallbackTournament) {
     const holes = related.holes
       .filter((hole) => hole.tournament_id === row.id)
       .sort(sortByNumber("hole_number"))
@@ -111,7 +129,8 @@
       id: row.id,
       tournamentName: row.tournament_name,
       courseName: row.course_name,
-      homeDescription: row.home_description || fallbackHomeDescription || row.leaderboard_description,
+      scoringModel: row.scoring_model || fallbackTournament?.scoringModel || "starting-handicap",
+      homeDescription: row.home_description || fallbackTournament?.homeDescription || row.leaderboard_description,
       leaderboardDescription: row.leaderboard_description,
       status: row.status,
       updatedAt: new Date(row.updated_at).getTime(),
@@ -151,6 +170,7 @@
               ...tournament,
               tournamentName: preservedTournament.tournamentName,
               courseName: preservedTournament.courseName,
+              scoringModel: preservedTournament.scoringModel,
               homeDescription: preservedTournament.homeDescription,
               leaderboardDescription: preservedTournament.leaderboardDescription,
               status: preservedTournament.status,
@@ -165,6 +185,29 @@
     return merged;
   }
 
+  async function runSerializedMutation(action) {
+    const run = mutationQueue.then(async () => {
+      isPersisting = true;
+      needsRefreshAfterPersist = false;
+
+      try {
+        return await action();
+      } finally {
+        isPersisting = false;
+        if (needsRefreshAfterPersist) {
+          needsRefreshAfterPersist = false;
+          const refreshedState = await loadRemoteState().catch(() => null);
+          if (refreshedState) {
+            notifySubscribers();
+          }
+        }
+      }
+    });
+
+    mutationQueue = run.catch(() => {});
+    return run;
+  }
+
   async function loadRemoteState() {
     const supabase = getClient();
     if (!supabase) {
@@ -172,6 +215,7 @@
     }
 
     await detectHomeDescriptionSupport();
+    await detectScoringModelSupport();
     const localState = TournamentStore.loadState();
     const localTournamentMap = new Map(
       (localState.tournaments || []).map((tournament) => [tournament.id, tournament]),
@@ -238,7 +282,7 @@
         templateRowToState(row, templateHolesResult.data || []),
       ),
       tournaments: tournamentsResult.data.map((row) =>
-        tournamentRowToState(row, related, localTournamentMap.get(row.id)?.homeDescription),
+        tournamentRowToState(row, related, localTournamentMap.get(row.id)),
       ),
     };
 
@@ -359,11 +403,9 @@
       return TournamentStore.saveState(state || TournamentStore.loadState());
     }
 
-    isPersisting = true;
-    needsRefreshAfterPersist = false;
-
-    try {
+    return runSerializedMutation(async () => {
       await detectHomeDescriptionSupport();
+      await detectScoringModelSupport();
       const nextState = TournamentStore.saveState(state || TournamentStore.loadState());
       const existingTournaments = await supabase.from("tournaments").select("id");
       if (existingTournaments.error) {
@@ -393,6 +435,9 @@
         };
         if (supportsHomeDescription) {
           row.home_description = tournament.homeDescription || tournament.leaderboardDescription;
+        }
+        if (supportsScoringModel) {
+          row.scoring_model = tournament.scoringModel || "starting-handicap";
         }
         return row;
       });
@@ -451,16 +496,7 @@
       const refreshedState = await loadRemoteState();
       notifySubscribers();
       return refreshedState;
-    } finally {
-      isPersisting = false;
-      if (needsRefreshAfterPersist) {
-        needsRefreshAfterPersist = false;
-        const refreshedState = await loadRemoteState().catch(() => null);
-        if (refreshedState) {
-          notifySubscribers();
-        }
-      }
-    }
+    });
   }
 
   async function clearTournamentScores(tournamentId) {
@@ -471,10 +507,7 @@
       return nextState;
     }
 
-    isPersisting = true;
-    needsRefreshAfterPersist = false;
-
-    try {
+    return runSerializedMutation(async () => {
       const localState = TournamentStore.loadState();
       const preservedTournament = TournamentStore.getTournament(localState, tournamentId);
       const deleteScores = await supabase.from("scores").delete().eq("tournament_id", tournamentId);
@@ -487,16 +520,7 @@
       const mergedState = mergePreservedTournamentFields(refreshedState, preservedTournament);
       notifySubscribers();
       return mergedState;
-    } finally {
-      isPersisting = false;
-      if (needsRefreshAfterPersist) {
-        needsRefreshAfterPersist = false;
-        const refreshedState = await loadRemoteState().catch(() => null);
-        if (refreshedState) {
-          notifySubscribers();
-        }
-      }
-    }
+    });
   }
 
   async function postScores(tournamentId, entries) {
@@ -516,10 +540,7 @@
       return nextState;
     }
 
-    isPersisting = true;
-    needsRefreshAfterPersist = false;
-
-    try {
+    return runSerializedMutation(async () => {
       const timestamp = new Date().toISOString();
       const scoreRows = entries.map((entry) => ({
         tournament_id: tournamentId,
@@ -558,16 +579,7 @@
       const refreshedState = await loadRemoteState();
       notifySubscribers();
       return refreshedState;
-    } finally {
-      isPersisting = false;
-      if (needsRefreshAfterPersist) {
-        needsRefreshAfterPersist = false;
-        const refreshedState = await loadRemoteState().catch(() => null);
-        if (refreshedState) {
-          notifySubscribers();
-        }
-      }
-    }
+    });
   }
 
   async function bootstrap() {

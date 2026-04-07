@@ -69,7 +69,17 @@ function scoreTone(value) {
 }
 
 function progressScoreLabel(player, value) {
+  if (player.scoringModel !== "starting-handicap" && player.completed === 0) {
+    return "-";
+  }
   return scoreLabel(value);
+}
+
+function tournamentNetDisplay(player, tournament) {
+  if (tournament?.scoringModel === "starting-handicap") {
+    return scoreLabel(player.netToPar);
+  }
+  return player.completed === 0 ? "-" : scoreLabel(player.netToPar);
 }
 
 function currentTournament() {
@@ -213,7 +223,7 @@ function renderHeaderMetrics() {
             </div>
             <div class="snapshot-meta">Thru ${player.thru}</div>
           </div>
-          <div class="snapshot-score">${scoreLabel(player.netToPar)}</div>
+          <div class="snapshot-score">${tournamentNetDisplay(player, tournament)}</div>
         </div>
       `,
     )
@@ -289,7 +299,7 @@ function renderGroupCards(group, tournament) {
   const players = group.playerIds
     .map((id) => tournament.players.find((player) => player.id === id))
     .filter(Boolean)
-    .map((player) => TournamentStore.computePlayer(player, tournament.course));
+    .map((player) => TournamentStore.computePlayer(player, tournament.course, tournament.scoringModel));
 
   strokeHoleGrid.innerHTML = players
     .map(

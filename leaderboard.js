@@ -54,6 +54,13 @@ function playerMetaText(player, groupLabel) {
   return `${groupLabel || "No group"}${teeText}`;
 }
 
+function netDisplayForTournament(player, tournament) {
+  if (tournament?.scoringModel === "starting-handicap") {
+    return scoreLabel(player.netToPar);
+  }
+  return player.completed === 0 ? "-" : scoreLabel(player.netToPar);
+}
+
 function grossResultLabel(delta) {
   if (delta <= -2) return "Eagle";
   if (delta === -1) return "Birdie";
@@ -150,7 +157,7 @@ async function renderLeaderboardPage() {
   leaderboardList.innerHTML = ranked
     .map(
       (player, index) => {
-        const netDisplay = scoreLabel(player.netToPar);
+        const netDisplay = netDisplayForTournament(player, tournament);
         const grossDisplay = player.completed === 0 ? "-" : scoreLabel(player.grossToPar);
         const statusText = playerStatus(player);
         const movement = movementMarkup(player, index, previousPositions);
@@ -172,7 +179,7 @@ async function renderLeaderboardPage() {
             </div>
             <div class="leaderboard-metric">
               <span class="metric-label">Tot</span>
-              <span class="metric-value ${scoreTone(player.netToPar)}">${netDisplay}</span>
+              <span class="metric-value ${tournament.scoringModel === "starting-handicap" || player.completed > 0 ? scoreTone(player.netToPar) : ""}">${netDisplay}</span>
             </div>
             <div class="leaderboard-metric">
               <span class="metric-label">Gross</span>
@@ -201,14 +208,19 @@ async function renderLeaderboardPage() {
                 ${player.scores
                   .map((score, index) => {
                     const hole = tournament.course[index];
-                    const netScore = score === null ? null : Number(score);
+                    const netScore =
+                      score === null
+                        ? null
+                        : tournament.scoringModel === "starting-handicap"
+                          ? Number(score)
+                          : Math.max(1, Number(score) - player.allocation[index].strokes);
                     const delta = score === null ? null : Number(score) - hole.par;
                     return `
                       <div class="leaderboard-hole-card ${score === null ? "score-missing" : `score-entered ${grossResultClass(delta)}`}">
                         <div class="hole-card-title">Hole ${hole.hole}</div>
                         <div class="hole-card-line">Par ${hole.par} · SI ${hole.strokeIndex}</div>
                         <div class="hole-card-value">${score === null ? "-" : `${score} gross`}</div>
-                        <div class="hole-card-line">${score === null ? "No score yet" : `${grossResultLabel(delta)} · Gross ${netScore}`}</div>
+                        <div class="hole-card-line">${score === null ? "No score yet" : `${grossResultLabel(delta)} · ${tournament.scoringModel === "starting-handicap" ? `Gross ${netScore}` : `Net ${netScore}`}`}</div>
                       </div>
                     `;
                   })
@@ -245,13 +257,48 @@ async function renderLeaderboardPage() {
               <h3>${player.name}</h3>
               <div class="card-subline">${playerGroupMap.get(player.id) || "No group"} · HCP ${player.handicap}</div>
             </div>
-            <div class="score-badge ${scoreTone(player.netToPar)}">${scoreLabel(player.netToPar)}</div>
+            <div class="score-badge ${tournament.scoringModel === "starting-handicap" || player.completed > 0 ? scoreTone(player.netToPar) : ""}">${netDisplayForTournament(player, tournament)}</div>
           </div>
-          <div class="detail-pill">Handicap start ${scoreLabel(-player.handicap)}</div>
+          ${
+            tournament.scoringModel === "starting-handicap"
+              ? `<div class="detail-pill">Handicap start ${scoreLabel(-player.handicap)}</div>`
+              : `<div class="mini-hole-grid">
+            ${player.allocation
+              .map((item, index) => {
+                const classes = ["mini-hole", item.strokes > 0 ? "stroke-hole" : "non-stroke-hole"]
+                  .filter(Boolean)
+                  .join(" ");
+                const label = item.strokes > 0 ? `+${item.strokes}` : "0";
+                return `<div class="${classes}" title="Hole ${item.hole} · ${tournament.course[index].yardage} yds · SI ${item.strokeIndex}"><span class="mini-hole-number">${item.hole}</span>:<span class="mini-hole-value">${label}</span></div>`;
+              })
+              .join("")}
+          </div>`
+          }
         </article>
       `,
     )
     .join("");
+
+  const guideKicker = document.querySelector(".panel-kicker");
+  const guideTitle = document.querySelector(".panel h2");
+  if (guideKicker && guideTitle && leaderboardPlayerCards) {
+    // Intentionally target the second panel heading on the leaderboard page.
+    const headings = document.querySelectorAll(".panel .panel-heading");
+    const guideHeading = headings[1];
+    if (guideHeading) {
+      const kicker = guideHeading.querySelector(".panel-kicker");
+      const title = guideHeading.querySelector("h2");
+      if (kicker) {
+        kicker.textContent = tournament.scoringModel === "starting-handicap" ? "Handicap Guide" : "Stroke Hole Guide";
+      }
+      if (title) {
+        title.textContent =
+          tournament.scoringModel === "starting-handicap"
+            ? "Starting net handicap for each player"
+            : "Where each player receives strokes";
+      }
+    }
+  }
 
   saveCurrentPositions(tournament.id, ranked, snapshotKey);
 }

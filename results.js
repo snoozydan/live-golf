@@ -3,6 +3,11 @@ const resultsLiveName = document.getElementById("results-live-name");
 const resultsLiveCourse = document.getElementById("results-live-course");
 const resultsList = document.getElementById("results-list");
 
+function moneyLabel(value) {
+  const amount = Number(value) || 0;
+  return amount > 0 ? `$${amount.toFixed(2).replace(/\.00$/, "")}` : "-";
+}
+
 function scoreLabel(value) {
   if (value === 0) {
     return "E";
@@ -10,8 +15,8 @@ function scoreLabel(value) {
   return value > 0 ? `+${value}` : `${value}`;
 }
 
-function renderResultsPage() {
-  const state = TournamentStore.loadState();
+async function renderResultsPage() {
+  const state = window.AppData?.enabled() ? await window.AppData.bootstrap() : TournamentStore.loadState();
   const liveTournament = TournamentStore.getLiveTournament(state);
   const completed = TournamentStore.resultsTournaments(state);
 
@@ -26,7 +31,7 @@ function renderResultsPage() {
 
   resultsList.innerHTML = completed
     .map((tournament) => {
-      const ranked = TournamentStore.rankedPlayers(tournament).slice(0, 8);
+      const ranked = TournamentStore.rankedPlayers(tournament);
       return `
         <article class="result-card">
           <div class="result-card-header">
@@ -37,6 +42,13 @@ function renderResultsPage() {
             <div class="score-badge">Final</div>
           </div>
           <div class="result-table">
+            <div class="result-row result-row-head">
+              <span>Pos</span>
+              <span>Player</span>
+              <span>Tot</span>
+              <span>Gross</span>
+              <span>Won</span>
+            </div>
             ${ranked
               .map(
                 (player) => `
@@ -45,6 +57,7 @@ function renderResultsPage() {
                     <span>${player.name}</span>
                     <span>${scoreLabel(player.netToPar)}</span>
                     <span>${player.gross}</span>
+                    <span>${moneyLabel(player.winnings)}</span>
                   </div>
                 `,
               )
@@ -57,4 +70,5 @@ function renderResultsPage() {
 }
 
 window.addEventListener("storage", renderResultsPage);
+window.AppData?.subscribe(renderResultsPage);
 renderResultsPage();

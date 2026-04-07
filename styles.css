@@ -845,6 +845,10 @@ button {
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
+.admin-controls-seven {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
 .leaderboard-row {
   padding: 16px 18px;
   display: grid;
@@ -1041,11 +1045,20 @@ button {
 
 .result-row {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) 80px 80px;
+  grid-template-columns: 64px minmax(0, 1fr) 80px 80px 92px;
   gap: 12px;
   padding: 12px 14px;
   border-radius: 16px;
   background: rgba(13, 107, 69, 0.06);
+}
+
+.result-row-head {
+  background: transparent;
+  color: rgba(34, 49, 40, 0.62);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0 14px 4px;
 }
 
 .group-player-card {
@@ -1235,6 +1248,10 @@ button {
   }
 
   .admin-controls-six {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-controls-seven {
     grid-template-columns: 1fr;
   }
 

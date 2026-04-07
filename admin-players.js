@@ -23,6 +23,7 @@ AdminCommon.initAdminPage({
         teeTime: "",
         accessCode: `P${index}`,
         handicap: 0,
+        winnings: 0,
         scores: new Array(18).fill(null),
       };
     }
@@ -39,7 +40,7 @@ AdminCommon.initAdminPage({
                   <div class="admin-meta">Code ${player.accessCode} · ${player.division}</div>
                 </div>
               </div>
-              <form class="admin-controls admin-controls-six" data-player-form="${player.id}">
+              <form class="admin-controls admin-controls-seven" data-player-form="${player.id}">
                 <label>
                   Name
                   <input type="text" name="name" value="${player.name}" />
@@ -60,6 +61,10 @@ AdminCommon.initAdminPage({
                   Handicap
                   <input type="number" min="0" max="54" name="handicap" value="${player.handicap}" />
                 </label>
+                <label>
+                  Winnings
+                  <input type="number" min="0" step="0.01" name="winnings" value="${player.winnings || 0}" />
+                </label>
                 <div class="button-stack">
                   <button type="button" class="danger-button" data-remove-player="${player.id}">Remove</button>
                 </div>
@@ -79,6 +84,7 @@ AdminCommon.initAdminPage({
           player.division = form.querySelector('input[name="division"]').value;
           player.teeTime = form.querySelector('input[name="teeTime"]').value;
           player.handicap = form.querySelector('input[name="handicap"]').value;
+          player.winnings = form.querySelector('input[name="winnings"]').value;
           setDirty(true);
           setMessage("Unsaved player changes.");
         });
@@ -111,6 +117,7 @@ AdminCommon.initAdminPage({
         teeTime: "",
         accessCode: code,
         handicap: 0,
+        winnings: 0,
         scores: new Array(18).fill(null),
       });
       newPlayerNameInput.value = "";

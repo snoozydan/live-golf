@@ -49,8 +49,12 @@ create table if not exists players (
   tee_time text not null default '',
   access_code text not null,
   handicap integer not null default 0 check (handicap >= 0),
+  winnings numeric not null default 0 check (winnings >= 0),
   display_order integer not null default 0
 );
+
+alter table players add column if not exists winnings numeric not null default 0;
+update players set winnings = 0 where winnings is null;
 
 create unique index if not exists players_tournament_access_code_idx
   on players (tournament_id, access_code);

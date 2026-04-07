@@ -194,9 +194,25 @@
         teeTime: player.teeTime || fallback.teeTime,
         accessCode: String(player.accessCode || fallback.accessCode).toUpperCase(),
         handicap: Math.max(0, Number(player.handicap) || 0),
+        winnings: Math.max(0, Number(player.winnings) || 0),
         scores: scores.map((score) => (score === null || score === "" ? null : Number(score))),
       };
     });
+  }
+
+  function preferredLeaderboardTournamentId(tournaments, requestedId) {
+    const requestedTournament = tournaments.find((tournament) => tournament.id === requestedId);
+    if (requestedTournament && requestedTournament.status !== "completed") {
+      return requestedTournament.id;
+    }
+
+    return (
+      tournaments.find((tournament) => tournament.status === "live")?.id ||
+      tournaments.find((tournament) => tournament.status === "upcoming")?.id ||
+      tournaments.find((tournament) => tournament.status !== "completed")?.id ||
+      tournaments[0]?.id ||
+      null
+    );
   }
 
   function normalizeTournament(tournament, fallbackTournament) {
@@ -257,11 +273,7 @@
       normalizeTournament(tournament, defaults.tournaments[index] || defaults.tournaments[0]),
     );
 
-    const leaderboardTournamentId =
-      tournaments.find((tournament) => tournament.id === state.leaderboardTournamentId)?.id ||
-      tournaments.find((tournament) => tournament.status === "live")?.id ||
-      tournaments[0]?.id ||
-      null;
+    const leaderboardTournamentId = preferredLeaderboardTournamentId(tournaments, state.leaderboardTournamentId);
 
     return {
       adminCode: state.adminCode || defaults.adminCode,
@@ -307,7 +319,11 @@
   }
 
   function getLiveTournament(state) {
-    return getTournament(state, state.leaderboardTournamentId) || state.tournaments[0] || null;
+    return (
+      getTournament(state, preferredLeaderboardTournamentId(state.tournaments || [], state.leaderboardTournamentId)) ||
+      state.tournaments[0] ||
+      null
+    );
   }
 
   function listTournaments(state) {
@@ -544,6 +560,7 @@
           name: String(changes.name || "").trim() || player.name,
           division: String(changes.division || "").trim() || player.division,
           teeTime: String(changes.teeTime || "").trim(),
+          winnings: Math.max(0, Number(changes.winnings) || 0),
           accessCode: codeTaken ? player.accessCode : normalizedCode || player.accessCode,
         };
       }),
@@ -551,7 +568,7 @@
   }
 
   function updateTournamentSettings(state, tournamentId, changes) {
-    return updateTournament(state, tournamentId, (tournament) => ({
+    const nextState = updateTournament(state, tournamentId, (tournament) => ({
       ...tournament,
       scoringModel: String(changes.scoringModel || "").trim() || tournament.scoringModel || "starting-handicap",
       tournamentName: String(changes.tournamentName || "").trim() || tournament.tournamentName,
@@ -561,6 +578,10 @@
         String(changes.leaderboardDescription || "").trim() || tournament.leaderboardDescription,
       status: String(changes.status || "").trim() || tournament.status,
     }));
+    return saveState({
+      ...nextState,
+      leaderboardTournamentId: preferredLeaderboardTournamentId(nextState.tournaments, nextState.leaderboardTournamentId),
+    });
   }
 
   function updateHole(state, tournamentId, holeNumber, changes) {
@@ -609,6 +630,7 @@
         ? sourceTournament.players.map((player, index) => ({
             ...player,
             id: makeId(`player${index + 1}`),
+            winnings: 0,
             scores: new Array(18).fill(null),
           }))
         : [],
@@ -663,6 +685,7 @@
       players: source.players.map((player, index) => ({
         ...player,
         id: makeId(`player${index + 1}`),
+        winnings: 0,
         scores: new Array(18).fill(null),
       })),
       groups: source.groups.map((group, groupIndex) => ({
@@ -706,6 +729,7 @@
         teeTime: String(details.teeTime || "").trim() || "",
         accessCode: String(details.accessCode || "").trim().toUpperCase() || `P${nextIndex}`,
         handicap: Math.max(0, Number(details.handicap) || 0),
+        winnings: Math.max(0, Number(details.winnings) || 0),
         scores: new Array(18).fill(null),
       };
 
@@ -737,6 +761,7 @@
           teeTime: String(player.teeTime || "").trim() || "",
           accessCode: String(player.accessCode || "").trim().toUpperCase() || `P${index + 1}`,
           handicap: Math.max(0, Number(player.handicap) || 0),
+          winnings: Math.max(0, Number(player.winnings) || 0),
           scores: Array.isArray(player.scores) ? player.scores : new Array(18).fill(null),
         })),
         tournament.players,
@@ -784,7 +809,7 @@
     if (!getTournament(nextState, tournamentId)) {
       return nextState;
     }
-    nextState.leaderboardTournamentId = tournamentId;
+    nextState.leaderboardTournamentId = preferredLeaderboardTournamentId(nextState.tournaments, tournamentId);
     nextState.tournaments = nextState.tournaments.map((tournament) =>
       tournament.id === tournamentId ? { ...tournament, status: "live" } : tournament,
     );
@@ -858,8 +883,7 @@
     nextState.tournaments = remaining;
 
     if (nextState.leaderboardTournamentId === tournamentId) {
-      nextState.leaderboardTournamentId =
-        remaining.find((tournament) => tournament.status === "live")?.id || remaining[0].id;
+      nextState.leaderboardTournamentId = preferredLeaderboardTournamentId(remaining, null);
     }
 
     return saveState(nextState);

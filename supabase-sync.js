@@ -96,6 +96,7 @@
         teeTime: player.tee_time || "",
         accessCode: player.access_code,
         handicap: player.handicap || 0,
+        winnings: Number(player.winnings) || 0,
         scores,
       };
     });
@@ -328,6 +329,7 @@
       tee_time: player.teeTime || "",
       access_code: player.accessCode,
       handicap: Number(player.handicap) || 0,
+      winnings: Number(player.winnings) || 0,
       display_order: index,
     }));
 

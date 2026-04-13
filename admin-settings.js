@@ -18,7 +18,7 @@ AdminCommon.initAdminPage({
     let draftSettings = {
       tournamentName: tournament?.tournamentName || "",
       courseName: tournament?.courseName || "",
-      scoringModel: tournament?.scoringModel || "starting-handicap",
+      scoringModel: tournament?.scoringModel || "hole-strokes",
       homeDescription: tournament?.homeDescription || "",
       leaderboardDescription: tournament?.leaderboardDescription || "",
       status: tournament?.status || "upcoming",

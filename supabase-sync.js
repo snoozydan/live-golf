@@ -147,7 +147,7 @@
       id: row.id,
       tournamentName: row.tournament_name,
       courseName: row.course_name,
-      scoringModel: row.scoring_model || fallbackTournament?.scoringModel || "starting-handicap",
+      scoringModel: row.scoring_model || fallbackTournament?.scoringModel || "hole-strokes",
       homeDescription: row.home_description || fallbackTournament?.homeDescription || row.leaderboard_description,
       leaderboardDescription: row.leaderboard_description,
       status: row.status,
@@ -536,7 +536,7 @@
           row.home_description = tournament.homeDescription || tournament.leaderboardDescription;
         }
         if (supportsScoringModel) {
-          row.scoring_model = tournament.scoringModel || "starting-handicap";
+          row.scoring_model = tournament.scoringModel || "hole-strokes";
         }
         return row;
       });

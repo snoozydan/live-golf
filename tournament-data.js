@@ -101,7 +101,7 @@
       id: overrides.id || makeId("tournament"),
       tournamentName: overrides.tournamentName || "New Tournament",
       courseName: overrides.courseName || "Course Name",
-      scoringModel: overrides.scoringModel || "starting-handicap",
+      scoringModel: overrides.scoringModel || "hole-strokes",
       homeDescription:
         overrides.homeDescription ||
         "Welcome players and guests. Use this page as the tournament hub for event details, scoring access, and the live leaderboard.",
@@ -221,7 +221,7 @@
       id: tournament.id || fallback.id,
       tournamentName: tournament.tournamentName || fallback.tournamentName,
       courseName: tournament.courseName || fallback.courseName,
-      scoringModel: tournament.scoringModel || fallback.scoringModel || "starting-handicap",
+      scoringModel: tournament.scoringModel || fallback.scoringModel || "hole-strokes",
       homeDescription: tournament.homeDescription || fallback.homeDescription,
       leaderboardDescription: tournament.leaderboardDescription || fallback.leaderboardDescription,
       status: tournament.status || fallback.status,
@@ -353,7 +353,7 @@
     }));
   }
 
-  function computePlayer(player, course, scoringModel = "starting-handicap") {
+  function computePlayer(player, course, scoringModel = "hole-strokes") {
     const allocation = strokeAllocation(player.handicap, course);
     let completed = 0;
     let gross = 0;
@@ -400,7 +400,7 @@
     }
 
     const computed = tournament.players.map((player) =>
-      computePlayer(player, tournament.course, tournament.scoringModel || "starting-handicap"),
+      computePlayer(player, tournament.course, tournament.scoringModel || "hole-strokes"),
     );
     function teeTimeMinutes(value) {
       const match = String(value || "")
@@ -570,7 +570,7 @@
   function updateTournamentSettings(state, tournamentId, changes) {
     const nextState = updateTournament(state, tournamentId, (tournament) => ({
       ...tournament,
-      scoringModel: String(changes.scoringModel || "").trim() || tournament.scoringModel || "starting-handicap",
+      scoringModel: String(changes.scoringModel || "").trim() || tournament.scoringModel || "hole-strokes",
       tournamentName: String(changes.tournamentName || "").trim() || tournament.tournamentName,
       courseName: String(changes.courseName || "").trim() || tournament.courseName,
       homeDescription: String(changes.homeDescription || "").trim() || tournament.homeDescription,
@@ -611,7 +611,7 @@
         courseTemplate?.name ||
         sourceTournament?.courseName ||
         "Course Name",
-      scoringModel: String(details.scoringModel || "").trim() || sourceTournament?.scoringModel || "starting-handicap",
+      scoringModel: String(details.scoringModel || "").trim() || sourceTournament?.scoringModel || "hole-strokes",
       homeDescription:
         String(details.homeDescription || "").trim() ||
         sourceTournament?.homeDescription ||
@@ -677,7 +677,7 @@
     const duplicate = createTournament({
       tournamentName: String(details.tournamentName || "").trim() || `${source.tournamentName} Copy`,
       courseName: String(details.courseName || "").trim() || source.courseName,
-      scoringModel: source.scoringModel || "starting-handicap",
+      scoringModel: source.scoringModel || "hole-strokes",
       homeDescription: source.homeDescription,
       leaderboardDescription: source.leaderboardDescription,
       status: details.status || "upcoming",

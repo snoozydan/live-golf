@@ -2,7 +2,7 @@ create table if not exists tournaments (
   id text primary key,
   tournament_name text not null,
   course_name text not null,
-  scoring_model text not null default 'starting-handicap',
+  scoring_model text not null default 'hole-strokes',
   home_description text,
   leaderboard_description text not null,
   status text not null default 'upcoming',
@@ -11,8 +11,8 @@ create table if not exists tournaments (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
-alter table tournaments add column if not exists scoring_model text not null default 'starting-handicap';
-update tournaments set scoring_model = 'starting-handicap' where scoring_model is null;
+alter table tournaments add column if not exists scoring_model text not null default 'hole-strokes';
+update tournaments set scoring_model = 'hole-strokes' where scoring_model is null;
 alter table tournaments add column if not exists home_description text;
 update tournaments set home_description = leaderboard_description where home_description is null;
 
